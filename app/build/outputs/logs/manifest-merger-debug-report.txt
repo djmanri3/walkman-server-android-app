@@ -1,0 +1,390 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
+MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/manri/.gradle/caches/8.9/transforms/74fc1268ff3f5642626e93f5ffaab0ee/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
+MERGED from [androidx.appcompat:appcompat:1.7.0] /home/manri/.gradle/caches/8.9/transforms/1dde5f983d8d8b69105a239187db4900/transformed/appcompat-1.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.media3:media3-exoplayer:1.4.1] /home/manri/.gradle/caches/8.9/transforms/8e206d037e096a8246bf741b4599d3e3/transformed/media3-exoplayer-1.4.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.media3:media3-datasource:1.4.1] /home/manri/.gradle/caches/8.9/transforms/86c00aab55672907703facd03d39bf3c/transformed/media3-datasource-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media3:media3-extractor:1.4.1] /home/manri/.gradle/caches/8.9/transforms/068d1c140dad434ad7566a26bcb09136/transformed/media3-extractor-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media3:media3-container:1.4.1] /home/manri/.gradle/caches/8.9/transforms/f13a0c08f7cfa0a877589804af7c06e5/transformed/media3-container-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media3:media3-decoder:1.4.1] /home/manri/.gradle/caches/8.9/transforms/25fb82ba0edec0f432fb835442dc7924/transformed/media3-decoder-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media3:media3-database:1.4.1] /home/manri/.gradle/caches/8.9/transforms/47abc1295bc060486f1919c859794082/transformed/media3-database-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media3:media3-common:1.4.1] /home/manri/.gradle/caches/8.9/transforms/71a3d4d7867ccf930919e7fe5351d607/transformed/media3-common-1.4.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.media3:media3-session:1.4.1] /home/manri/.gradle/caches/8.9/transforms/787953bedcf891eaa3abe20dc151e7f8/transformed/media3-session-1.4.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.media:media:1.7.0] /home/manri/.gradle/caches/8.9/transforms/47e61816cad352fbb2cb2109c88c93c4/transformed/media-1.7.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /home/manri/.gradle/caches/8.9/transforms/d082fb77384557313e4b1a3ce8e0a50e/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /home/manri/.gradle/caches/8.9/transforms/521d55b244d3e58af1a2b95ed991c41e/transformed/viewpager2-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.fragment:fragment:1.5.4] /home/manri/.gradle/caches/8.9/transforms/dafd58459c4cdfb2f7bad76866fad1c2/transformed/fragment-1.5.4/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.activity:activity:1.8.0] /home/manri/.gradle/caches/8.9/transforms/eccef3641fb182ec772542cb1b4425db/transformed/activity-1.8.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/manri/.gradle/caches/8.9/transforms/58242d362fcb8c56fa7ec6def399333d/transformed/savedstate-1.2.1/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.transition:transition:1.5.0] /home/manri/.gradle/caches/8.9/transforms/9d1c947f318e9e7fc379378e64cb04ee/transformed/transition-1.5.0/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /home/manri/.gradle/caches/8.9/transforms/f4be888dc301859ee5f0f579bb6b38e7/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/manri/.gradle/caches/8.9/transforms/77afff4facff46d9e0ffea40c9ced703/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.loader:loader:1.0.0] /home/manri/.gradle/caches/8.9/transforms/67ea28c3055e9d64bcc9ee19a46f8200/transformed/loader-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.2] /home/manri/.gradle/caches/8.9/transforms/ec5cd7fa00656bd0e63b7d9e42a0e116/transformed/lifecycle-livedata-2.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.2] /home/manri/.gradle/caches/8.9/transforms/54c955f1c9453137022006a3ba092626/transformed/lifecycle-viewmodel-2.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:17:1-35:12
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.2] /home/manri/.gradle/caches/8.9/transforms/a965f821223ee3589fe22179233e4e95/transformed/lifecycle-livedata-core-2.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.2] /home/manri/.gradle/caches/8.9/transforms/129c0b6fb3ffd36e7ad4024dd8786f8f/transformed/lifecycle-runtime-2.6.2/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2] /home/manri/.gradle/caches/8.9/transforms/1ba7c057c40d24ae64fe4d4da6341f57/transformed/lifecycle-viewmodel-savedstate-2.6.2/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.core:core-ktx:1.13.1] /home/manri/.gradle/caches/8.9/transforms/67e2a99ecc4bca6dbe3451aa43300a97/transformed/core-ktx-1.13.1/AndroidManifest.xml:2:1-7:12
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /home/manri/.gradle/caches/8.9/transforms/43625918a943aabeb509bfc3c0312b33/transformed/drawerlayout-1.1.1/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /home/manri/.gradle/caches/8.9/transforms/70ee23c0e0e0c37dfe41d6c34d471261/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/manri/.gradle/caches/8.9/transforms/d4073ce150f09b8411f5a4751160ea57/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/manri/.gradle/caches/8.9/transforms/b8f7ed74e747393379cf17addd3ed887/transformed/vectordrawable-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/99a4e4e56fab2ebb59654ca188732776/transformed/viewpager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/cfe7a436d65df671e19cabab7884e724/transformed/recyclerview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/ccb7155b84759ab93dd66aa5571c786b/transformed/customview-1.1.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/manri/.gradle/caches/8.9/transforms/4e8e304324599b458d61b8fae777970c/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/manri/.gradle/caches/8.9/transforms/d76f7faec08758676fd25dae129ae9e7/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:17:1-27:12
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/manri/.gradle/caches/8.9/transforms/5ac024980d164243ba39af4fe37c887f/transformed/exifinterface-1.3.6/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.cardview:cardview:1.0.0] /home/manri/.gradle/caches/8.9/transforms/e57c5ec95d97095f7ddd08f083c26acd/transformed/cardview-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8.9/transforms/c6f03c1e6772935c5ccd227794005cc7/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:17:1-24:12
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.print:print:1.0.0] /home/manri/.gradle/caches/8.9/transforms/17976e65923912d1f5a695e89a707860/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/manri/.gradle/caches/8.9/transforms/5d63084fa3f6b3d2d1c088d876e5b51c/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
+	package
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+	android:versionName
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+	android:versionCode
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+	xmlns:android
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:11-69
+uses-permission#android.permission.INTERNET
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:5:5-67
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:5:22-64
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:8:5-68
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:8:22-65
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:9:5-77
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:9:22-74
+uses-permission#android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:10:5-92
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:10:22-89
+uses-permission#android.permission.BLUETOOTH
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:13:5-95
+	android:maxSdkVersion
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:13:66-92
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:13:22-65
+uses-permission#android.permission.BLUETOOTH_CONNECT
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:14:5-76
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:14:22-73
+uses-permission#android.permission.ACCESS_NETWORK_STATE
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:17:5-79
+MERGED from [androidx.media3:media3-exoplayer:1.4.1] /home/manri/.gradle/caches/8.9/transforms/8e206d037e096a8246bf741b4599d3e3/transformed/media3-exoplayer-1.4.1/AndroidManifest.xml:22:5-79
+MERGED from [androidx.media3:media3-exoplayer:1.4.1] /home/manri/.gradle/caches/8.9/transforms/8e206d037e096a8246bf741b4599d3e3/transformed/media3-exoplayer-1.4.1/AndroidManifest.xml:22:5-79
+MERGED from [androidx.media3:media3-common:1.4.1] /home/manri/.gradle/caches/8.9/transforms/71a3d4d7867ccf930919e7fe5351d607/transformed/media3-common-1.4.1/AndroidManifest.xml:22:5-79
+MERGED from [androidx.media3:media3-common:1.4.1] /home/manri/.gradle/caches/8.9/transforms/71a3d4d7867ccf930919e7fe5351d607/transformed/media3-common-1.4.1/AndroidManifest.xml:22:5-79
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:17:22-76
+uses-permission#android.permission.POST_NOTIFICATIONS
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:5-77
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:22-74
+application
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-62:19
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-62:19
+MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
+MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:23:5-33:19
+MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:28:5-89
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:23:5-53:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/manri/.gradle/caches/8.9/transforms/d76f7faec08758676fd25dae129ae9e7/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/manri/.gradle/caches/8.9/transforms/d76f7faec08758676fd25dae129ae9e7/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:24:5-25:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:25:5-31:19
+	android:extractNativeLibs
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+	android:appComponentFactory
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+	android:supportsRtl
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:26:9-35
+	android:label
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:25:9-41
+	android:icon
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:24:9-43
+	android:allowBackup
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:23:9-35
+	android:theme
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:27:9-45
+	android:usesCleartextTraffic
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:28:9-44
+activity#com.djmanri3.Walkman.MainActivity
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:30:9-40:20
+	android:launchMode
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:33:13-44
+	android:exported
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:32:13-36
+	android:configChanges
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:34:13-94
+	android:theme
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:35:13-49
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:31:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:36:13-39:29
+action#android.intent.action.MAIN
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:37:17-69
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:37:25-66
+category#android.intent.category.LAUNCHER
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:38:17-77
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:38:27-74
+service#com.djmanri3.Walkman.MediaService
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:43:9-51:19
+	android:exported
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:45:13-36
+	android:foregroundServiceType
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:46:13-58
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:44:13-41
+intent-filter#action:name:android.media.browse.MediaBrowserService+action:name:androidx.media3.session.MediaSessionService
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:47:13-50:29
+action#androidx.media3.session.MediaSessionService
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:17-86
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:25-83
+action#android.media.browse.MediaBrowserService
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:17-83
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:25-80
+receiver#androidx.media.session.MediaButtonReceiver
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:54:9-60:20
+	android:exported
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:13-36
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:13-70
+intent-filter#action:name:android.intent.action.MEDIA_BUTTON
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:57:13-59:29
+action#android.intent.action.MEDIA_BUTTON
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:17-77
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:25-74
+uses-sdk
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/manri/.gradle/caches/8.9/transforms/74fc1268ff3f5642626e93f5ffaab0ee/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/manri/.gradle/caches/8.9/transforms/74fc1268ff3f5642626e93f5ffaab0ee/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:5:5-7:41
+MERGED from [androidx.appcompat:appcompat:1.7.0] /home/manri/.gradle/caches/8.9/transforms/1dde5f983d8d8b69105a239187db4900/transformed/appcompat-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.appcompat:appcompat:1.7.0] /home/manri/.gradle/caches/8.9/transforms/1dde5f983d8d8b69105a239187db4900/transformed/appcompat-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.media3:media3-exoplayer:1.4.1] /home/manri/.gradle/caches/8.9/transforms/8e206d037e096a8246bf741b4599d3e3/transformed/media3-exoplayer-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-exoplayer:1.4.1] /home/manri/.gradle/caches/8.9/transforms/8e206d037e096a8246bf741b4599d3e3/transformed/media3-exoplayer-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-datasource:1.4.1] /home/manri/.gradle/caches/8.9/transforms/86c00aab55672907703facd03d39bf3c/transformed/media3-datasource-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-datasource:1.4.1] /home/manri/.gradle/caches/8.9/transforms/86c00aab55672907703facd03d39bf3c/transformed/media3-datasource-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-extractor:1.4.1] /home/manri/.gradle/caches/8.9/transforms/068d1c140dad434ad7566a26bcb09136/transformed/media3-extractor-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-extractor:1.4.1] /home/manri/.gradle/caches/8.9/transforms/068d1c140dad434ad7566a26bcb09136/transformed/media3-extractor-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-container:1.4.1] /home/manri/.gradle/caches/8.9/transforms/f13a0c08f7cfa0a877589804af7c06e5/transformed/media3-container-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-container:1.4.1] /home/manri/.gradle/caches/8.9/transforms/f13a0c08f7cfa0a877589804af7c06e5/transformed/media3-container-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-decoder:1.4.1] /home/manri/.gradle/caches/8.9/transforms/25fb82ba0edec0f432fb835442dc7924/transformed/media3-decoder-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-decoder:1.4.1] /home/manri/.gradle/caches/8.9/transforms/25fb82ba0edec0f432fb835442dc7924/transformed/media3-decoder-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-database:1.4.1] /home/manri/.gradle/caches/8.9/transforms/47abc1295bc060486f1919c859794082/transformed/media3-database-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-database:1.4.1] /home/manri/.gradle/caches/8.9/transforms/47abc1295bc060486f1919c859794082/transformed/media3-database-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-common:1.4.1] /home/manri/.gradle/caches/8.9/transforms/71a3d4d7867ccf930919e7fe5351d607/transformed/media3-common-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-common:1.4.1] /home/manri/.gradle/caches/8.9/transforms/71a3d4d7867ccf930919e7fe5351d607/transformed/media3-common-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-session:1.4.1] /home/manri/.gradle/caches/8.9/transforms/787953bedcf891eaa3abe20dc151e7f8/transformed/media3-session-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media3:media3-session:1.4.1] /home/manri/.gradle/caches/8.9/transforms/787953bedcf891eaa3abe20dc151e7f8/transformed/media3-session-1.4.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.media:media:1.7.0] /home/manri/.gradle/caches/8.9/transforms/47e61816cad352fbb2cb2109c88c93c4/transformed/media-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.media:media:1.7.0] /home/manri/.gradle/caches/8.9/transforms/47e61816cad352fbb2cb2109c88c93c4/transformed/media-1.7.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /home/manri/.gradle/caches/8.9/transforms/d082fb77384557313e4b1a3ce8e0a50e/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2-views-helper:1.3.0] /home/manri/.gradle/caches/8.9/transforms/d082fb77384557313e4b1a3ce8e0a50e/transformed/emoji2-views-helper-1.3.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:21:5-44
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /home/manri/.gradle/caches/8.9/transforms/521d55b244d3e58af1a2b95ed991c41e/transformed/viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager2:viewpager2:1.0.0] /home/manri/.gradle/caches/8.9/transforms/521d55b244d3e58af1a2b95ed991c41e/transformed/viewpager2-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.5.4] /home/manri/.gradle/caches/8.9/transforms/dafd58459c4cdfb2f7bad76866fad1c2/transformed/fragment-1.5.4/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.fragment:fragment:1.5.4] /home/manri/.gradle/caches/8.9/transforms/dafd58459c4cdfb2f7bad76866fad1c2/transformed/fragment-1.5.4/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.activity:activity:1.8.0] /home/manri/.gradle/caches/8.9/transforms/eccef3641fb182ec772542cb1b4425db/transformed/activity-1.8.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.activity:activity:1.8.0] /home/manri/.gradle/caches/8.9/transforms/eccef3641fb182ec772542cb1b4425db/transformed/activity-1.8.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/manri/.gradle/caches/8.9/transforms/58242d362fcb8c56fa7ec6def399333d/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.savedstate:savedstate:1.2.1] /home/manri/.gradle/caches/8.9/transforms/58242d362fcb8c56fa7ec6def399333d/transformed/savedstate-1.2.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.transition:transition:1.5.0] /home/manri/.gradle/caches/8.9/transforms/9d1c947f318e9e7fc379378e64cb04ee/transformed/transition-1.5.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.transition:transition:1.5.0] /home/manri/.gradle/caches/8.9/transforms/9d1c947f318e9e7fc379378e64cb04ee/transformed/transition-1.5.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /home/manri/.gradle/caches/8.9/transforms/f4be888dc301859ee5f0f579bb6b38e7/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.dynamicanimation:dynamicanimation:1.0.0] /home/manri/.gradle/caches/8.9/transforms/f4be888dc301859ee5f0f579bb6b38e7/transformed/dynamicanimation-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/manri/.gradle/caches/8.9/transforms/77afff4facff46d9e0ffea40c9ced703/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.legacy:legacy-support-core-utils:1.0.0] /home/manri/.gradle/caches/8.9/transforms/77afff4facff46d9e0ffea40c9ced703/transformed/legacy-support-core-utils-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/manri/.gradle/caches/8.9/transforms/67ea28c3055e9d64bcc9ee19a46f8200/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.loader:loader:1.0.0] /home/manri/.gradle/caches/8.9/transforms/67ea28c3055e9d64bcc9ee19a46f8200/transformed/loader-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.2] /home/manri/.gradle/caches/8.9/transforms/ec5cd7fa00656bd0e63b7d9e42a0e116/transformed/lifecycle-livedata-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata:2.6.2] /home/manri/.gradle/caches/8.9/transforms/ec5cd7fa00656bd0e63b7d9e42a0e116/transformed/lifecycle-livedata-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.2] /home/manri/.gradle/caches/8.9/transforms/54c955f1c9453137022006a3ba092626/transformed/lifecycle-viewmodel-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel:2.6.2] /home/manri/.gradle/caches/8.9/transforms/54c955f1c9453137022006a3ba092626/transformed/lifecycle-viewmodel-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:21:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.2] /home/manri/.gradle/caches/8.9/transforms/a965f821223ee3589fe22179233e4e95/transformed/lifecycle-livedata-core-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.6.2] /home/manri/.gradle/caches/8.9/transforms/a965f821223ee3589fe22179233e4e95/transformed/lifecycle-livedata-core-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.2] /home/manri/.gradle/caches/8.9/transforms/129c0b6fb3ffd36e7ad4024dd8786f8f/transformed/lifecycle-runtime-2.6.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-runtime:2.6.2] /home/manri/.gradle/caches/8.9/transforms/129c0b6fb3ffd36e7ad4024dd8786f8f/transformed/lifecycle-runtime-2.6.2/AndroidManifest.xml:5:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2] /home/manri/.gradle/caches/8.9/transforms/1ba7c057c40d24ae64fe4d4da6341f57/transformed/lifecycle-viewmodel-savedstate-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.lifecycle:lifecycle-viewmodel-savedstate:2.6.2] /home/manri/.gradle/caches/8.9/transforms/1ba7c057c40d24ae64fe4d4da6341f57/transformed/lifecycle-viewmodel-savedstate-2.6.2/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /home/manri/.gradle/caches/8.9/transforms/67e2a99ecc4bca6dbe3451aa43300a97/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.core:core-ktx:1.13.1] /home/manri/.gradle/caches/8.9/transforms/67e2a99ecc4bca6dbe3451aa43300a97/transformed/core-ktx-1.13.1/AndroidManifest.xml:5:5-44
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /home/manri/.gradle/caches/8.9/transforms/43625918a943aabeb509bfc3c0312b33/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.drawerlayout:drawerlayout:1.1.1] /home/manri/.gradle/caches/8.9/transforms/43625918a943aabeb509bfc3c0312b33/transformed/drawerlayout-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /home/manri/.gradle/caches/8.9/transforms/70ee23c0e0e0c37dfe41d6c34d471261/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /home/manri/.gradle/caches/8.9/transforms/70ee23c0e0e0c37dfe41d6c34d471261/transformed/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/manri/.gradle/caches/8.9/transforms/d4073ce150f09b8411f5a4751160ea57/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable-animated:1.1.0] /home/manri/.gradle/caches/8.9/transforms/d4073ce150f09b8411f5a4751160ea57/transformed/vectordrawable-animated-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/manri/.gradle/caches/8.9/transforms/b8f7ed74e747393379cf17addd3ed887/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.vectordrawable:vectordrawable:1.1.0] /home/manri/.gradle/caches/8.9/transforms/b8f7ed74e747393379cf17addd3ed887/transformed/vectordrawable-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/99a4e4e56fab2ebb59654ca188732776/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.viewpager:viewpager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/99a4e4e56fab2ebb59654ca188732776/transformed/viewpager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/cfe7a436d65df671e19cabab7884e724/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.recyclerview:recyclerview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/cfe7a436d65df671e19cabab7884e724/transformed/recyclerview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/ccb7155b84759ab93dd66aa5571c786b/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/ccb7155b84759ab93dd66aa5571c786b/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/manri/.gradle/caches/8.9/transforms/4e8e304324599b458d61b8fae777970c/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.interpolator:interpolator:1.0.0] /home/manri/.gradle/caches/8.9/transforms/4e8e304324599b458d61b8fae777970c/transformed/interpolator-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/manri/.gradle/caches/8.9/transforms/d76f7faec08758676fd25dae129ae9e7/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.1] /home/manri/.gradle/caches/8.9/transforms/d76f7faec08758676fd25dae129ae9e7/transformed/versionedparcelable-1.1.1/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/manri/.gradle/caches/8.9/transforms/5ac024980d164243ba39af4fe37c887f/transformed/exifinterface-1.3.6/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.exifinterface:exifinterface:1.3.6] /home/manri/.gradle/caches/8.9/transforms/5ac024980d164243ba39af4fe37c887f/transformed/exifinterface-1.3.6/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.cardview:cardview:1.0.0] /home/manri/.gradle/caches/8.9/transforms/e57c5ec95d97095f7ddd08f083c26acd/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.cardview:cardview:1.0.0] /home/manri/.gradle/caches/8.9/transforms/e57c5ec95d97095f7ddd08f083c26acd/transformed/cardview-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:21:5-23:41
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8.9/transforms/c6f03c1e6772935c5ccd227794005cc7/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8.9/transforms/c6f03c1e6772935c5ccd227794005cc7/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/manri/.gradle/caches/8.9/transforms/17976e65923912d1f5a695e89a707860/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.print:print:1.0.0] /home/manri/.gradle/caches/8.9/transforms/17976e65923912d1f5a695e89a707860/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/manri/.gradle/caches/8.9/transforms/5d63084fa3f6b3d2d1c088d876e5b51c/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
+MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/manri/.gradle/caches/8.9/transforms/5d63084fa3f6b3d2d1c088d876e5b51c/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:5:5-44
+	android:targetSdkVersion
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml
+provider#androidx.startup.InitializationProvider
+ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:24:9-32:20
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:26:9-30:34
+	tools:node
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:28:13-31
+	android:authorities
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+	android:exported
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+meta-data#androidx.emoji2.text.EmojiCompatInitializer
+ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+meta-data#androidx.lifecycle.ProcessLifecycleInitializer
+ADDED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+permission#com.djmanri3.Walkman.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+	android:protectionLevel
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+uses-permission#${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+uses-permission#com.djmanri3.Walkman.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+	android:name
+		ADDED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+meta-data#androidx.profileinstaller.ProfileInstallerInitializer
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+	android:value
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+receiver#androidx.profileinstaller.ProfileInstallReceiver
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+	android:enabled
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+	android:exported
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+	android:permission
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+	android:directBootAware
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+intent-filter#action:name:androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+action#androidx.profileinstaller.action.INSTALL_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+intent-filter#action:name:androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+action#androidx.profileinstaller.action.SKIP_FILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+intent-filter#action:name:androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+action#androidx.profileinstaller.action.SAVE_PROFILE
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+intent-filter#action:name:androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+action#androidx.profileinstaller.action.BENCHMARK_OPERATION
+ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+	android:name
+		ADDED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92

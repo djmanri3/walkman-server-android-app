@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.djmanri3.Walkman.app-mergeDebugResources-32:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "/home/manri/.gradle/caches/8.9/transforms/1dde5f983d8d8b69105a239187db4900/transformed/appcompat-1.7.0/res/values-hdpi-v4/values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,25 @@
+R_DEF: Internal format may change without notice
+local
+color accent
+color black
+color walkman_bg
+color white
+drawable ic_notification
+drawable ic_pause
+drawable ic_play
+drawable ic_skip_next
+drawable ic_skip_previous
+drawable ic_walkman
+drawable ic_walkman_fg
+id webview
+layout activity_main
+mipmap ic_launcher
+string app_name
+string default_artist
+string next
+string notification_channel
+string notification_channel_desc
+string pause
+string play
+string prev
+style Theme.Walkman

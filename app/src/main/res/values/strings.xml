@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Walkman</string>
+
+    <!-- Servicio y notificación -->
+    <string name="notification_channel">Reproducción multimedia</string>
+    <string name="notification_channel_desc">Permite controlar la reproducción desde la barra de notificaciones y el bloqueo.</string>
+    <string name="default_artist">Reproductor Walkman</string>
+
+    <!-- Acciones de la notificación -->
+    <string name="play">Reproducir</string>
+    <string name="pause">Pausar</string>
+    <string name="prev">Anterior</string>
+    <string name="next">Siguiente</string>
+</resources>
