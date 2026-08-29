@@ -180,7 +180,9 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
         // Barra de progreso renderizada como bitmap (el ProgressBar nativo no
         // admite tinte dinámico por RemoteViews en este launcher). Se dibuja el
         // track y el relleno con el color dominante de la carátula.
-        int accent = st.getAccentColor();
+        // Color de acento: personalizado (si el usuario lo eligió) o el de la
+        // carátula (por defecto).
+        int accent = st.isAccentManual() ? st.getAccentOverride() : st.getAccentColor();
         synchronized (LOCK) {
             sAccentColor = accent;
         }
@@ -231,6 +233,9 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_next,
                 mediaServicePi(context, 13, MediaService.ACTION_NEXT));
 
+        // Tocar el logo abre el diálogo de elección de color de acento.
+        views.setOnClickPendingIntent(R.id.widget_logo, accentColorPi(context));
+
         // Icono play/pausa.
         views.setImageViewResource(R.id.widget_play,
                 playing ? R.drawable.ic_pause : R.drawable.ic_play);
@@ -252,6 +257,12 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
     private static PendingIntent mediaServicePi(Context context, int reqCode, String action) {
         Intent i = new Intent(context, MediaService.class).setAction(action);
         return PendingIntent.getService(context, reqCode, i,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+    }
+
+    private static PendingIntent accentColorPi(Context context) {
+        Intent i = new Intent(context, AccentColorActivity.class);
+        return PendingIntent.getActivity(context, 21, i,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 

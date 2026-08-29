@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-84:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-84:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-84:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-84:12
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/manri/.gradle/caches/8.9/transforms/74fc1268ff3f5642626e93f5ffaab0ee/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
@@ -102,8 +102,8 @@ ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:5-
 	android:name
 		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:22-74
 application
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-75:19
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-75:19
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-82:19
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-82:19
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -158,58 +158,68 @@ category#android.intent.category.LAUNCHER
 ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:38:17-77
 	android:name
 		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:38:27-74
-service#com.djmanri3.Walkman.MediaService
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:43:9-51:19
+activity#com.djmanri3.Walkman.AccentColorActivity
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:43:9-47:49
+	android:excludeFromRecents
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:47:13-46
 	android:exported
 		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:45:13-36
+	android:theme
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:46:13-56
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:44:13-48
+service#com.djmanri3.Walkman.MediaService
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:50:9-58:19
+	android:exported
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:52:13-36
 	android:foregroundServiceType
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:46:13-58
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:53:13-58
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:44:13-41
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:51:13-41
 intent-filter#action:name:android.media.browse.MediaBrowserService+action:name:androidx.media3.session.MediaSessionService
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:47:13-50:29
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:54:13-57:29
 action#androidx.media3.session.MediaSessionService
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:17-86
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:17-86
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:25-83
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:25-83
 action#android.media.browse.MediaBrowserService
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:17-83
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:17-83
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:25-80
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:25-80
 receiver#androidx.media.session.MediaButtonReceiver
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:54:9-60:20
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:61:9-67:20
 	android:exported
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:13-36
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:63:13-36
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:13-70
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:62:13-70
 intent-filter#action:name:android.intent.action.MEDIA_BUTTON
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:57:13-59:29
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:64:13-66:29
 action#android.intent.action.MEDIA_BUTTON
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:17-77
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:17-77
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:25-74
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:25-74
 receiver#com.djmanri3.Walkman.WalkmanWidgetProvider
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:63:9-73:20
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:70:9-80:20
 	android:exported
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:13-36
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:72:13-36
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:64:13-50
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:71:13-50
 intent-filter#action:name:android.appwidget.action.APPWIDGET_UPDATE+action:name:com.djmanri3.Walkman.action.WIDGET_UPDATE
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:66:13-69:29
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:73:13-76:29
 action#android.appwidget.action.APPWIDGET_UPDATE
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:17-84
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:74:17-84
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:25-81
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:74:25-81
 action#com.djmanri3.Walkman.action.WIDGET_UPDATE
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:17-84
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:75:17-84
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:25-81
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:75:25-81
 meta-data#android.appwidget.provider
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:70:13-72:63
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:77:13-79:63
 	android:resource
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:72:17-60
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:79:17-60
 	android:name
-		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:71:17-58
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:78:17-58
 uses-sdk
 INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml

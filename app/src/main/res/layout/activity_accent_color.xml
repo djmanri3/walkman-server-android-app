@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbars="vertical"
+        android:overScrollMode="always">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Color de acento"
+                android:textColor="#FFFFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="12dp" />
+
+            <TextView
+                android:id="@+id/opt_auto"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:background="@drawable/btn_rect_bg"
+                android:gravity="center"
+                android:text="Usar el color de la carátula"
+                android:textColor="#FFFFFFFF"
+                android:textSize="15sp"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginBottom="20dp" />
+
+            <FrameLayout
+                android:id="@+id/preview"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="Color elegido"
+                    android:textColor="#B3FFFFFF"
+                    android:textSize="14sp" />
+
+                <View
+                    android:id="@+id/preview_swatch"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_vertical|end"
+                    android:background="@drawable/swatch_circle" />
+            </FrameLayout>
+
+            <com.djmanri3.Walkman.ColorPickerView
+                android:id="@+id/color_picker"
+                android:layout_width="match_parent"
+                android:layout_height="340dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="20dp" />
+
+            <Button
+                android:id="@+id/btn_use"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:text="Usar este color"
+                android:textColor="#FF000000"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

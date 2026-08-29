@@ -4,6 +4,7 @@ color accent
 color black
 color walkman_bg
 color white
+drawable btn_rect_bg
 drawable ic_notification
 drawable ic_pause
 drawable ic_play
@@ -11,11 +12,18 @@ drawable ic_skip_next
 drawable ic_skip_previous
 drawable ic_walkman
 drawable ic_walkman_fg
+drawable swatch_auto
+drawable swatch_circle
 drawable walkman_logo
 drawable widget_art_frame
 drawable widget_background
 drawable widget_play_button_bg
 drawable widget_progress
+id btn_use
+id color_picker
+id opt_auto
+id preview
+id preview_swatch
 id webview
 id widget_art
 id widget_artist
@@ -26,6 +34,7 @@ id widget_play
 id widget_prev
 id widget_progress
 id widget_title
+layout activity_accent_color
 layout activity_main
 layout walkman_widget
 mipmap ic_launcher
@@ -38,4 +47,5 @@ string pause
 string play
 string prev
 style Theme.Walkman
+style Theme.Walkman.Dialog
 xml walkman_widget_info

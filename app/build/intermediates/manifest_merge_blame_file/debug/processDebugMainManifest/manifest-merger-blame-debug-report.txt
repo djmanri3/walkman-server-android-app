@@ -1,8 +1,8 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
 3    package="com.djmanri3.Walkman"
-4    android:versionCode="1"
-5    android:versionName="1.0" >
+4    android:versionCode="2"
+5    android:versionName="2.0" >
 6
 7    <uses-sdk
 8        android:minSdkVersion="24"
@@ -57,7 +57,7 @@
 35-->[androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 36
 37    <application
-37-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-75:19
+37-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-82:19
 38        android:allowBackup="true"
 38-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:23:9-35
 39        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
@@ -98,131 +98,143 @@
 57            </intent-filter>
 58        </activity>
 59
-60        <!-- Servicio multimedia: mantiene la MediaSession y la notificación -->
-61        <service
-61-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:43:9-51:19
-62            android:name="com.djmanri3.Walkman.MediaService"
-62-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:44:13-41
-63            android:exported="true"
-63-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:45:13-36
-64            android:foregroundServiceType="mediaPlayback" >
-64-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:46:13-58
-65            <intent-filter>
-65-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:47:13-50:29
-66                <action android:name="androidx.media3.session.MediaSessionService" />
-66-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:17-86
-66-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:48:25-83
-67                <action android:name="android.media.browse.MediaBrowserService" />
-67-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:17-83
-67-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:49:25-80
-68            </intent-filter>
-69        </service>
-70
-71        <!-- Receptor de botones multimedia (bluetooth / auriculares / teclado) -->
-72        <receiver
-72-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:54:9-60:20
-73            android:name="androidx.media.session.MediaButtonReceiver"
-73-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:13-70
-74            android:exported="true" >
-74-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:13-36
-75            <intent-filter>
-75-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:57:13-59:29
-76                <action android:name="android.intent.action.MEDIA_BUTTON" />
-76-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:17-77
-76-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:25-74
-77            </intent-filter>
-78        </receiver>
-79
-80        <!-- Widget de pantalla de inicio para controlar la reproducción -->
-81        <receiver
-81-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:63:9-73:20
-82            android:name="com.djmanri3.Walkman.WalkmanWidgetProvider"
-82-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:64:13-50
-83            android:exported="true" >
-83-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:13-36
-84            <intent-filter>
-84-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:66:13-69:29
-85                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-85-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:17-84
-85-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:25-81
-86                <action android:name="com.djmanri3.Walkman.action.WIDGET_UPDATE" />
-86-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:17-84
-86-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:25-81
-87            </intent-filter>
-88
-89            <meta-data
-89-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:70:13-72:63
-90                android:name="android.appwidget.provider"
-90-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:71:17-58
-91                android:resource="@xml/walkman_widget_info" />
-91-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:72:17-60
-92        </receiver>
-93
-94        <provider
-94-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
-95            android:name="androidx.startup.InitializationProvider"
-95-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
-96            android:authorities="com.djmanri3.Walkman.androidx-startup"
-96-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
-97            android:exported="false" >
-97-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
-98            <meta-data
-98-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
-99                android:name="androidx.emoji2.text.EmojiCompatInitializer"
-99-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
-100                android:value="androidx.startup" />
-100-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
-101            <meta-data
-101-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
-102                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
-102-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
-103                android:value="androidx.startup" />
-103-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
-104            <meta-data
-104-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
-105                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
-105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
-106                android:value="androidx.startup" />
-106-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
-107        </provider>
-108
-109        <receiver
-109-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
-110            android:name="androidx.profileinstaller.ProfileInstallReceiver"
-110-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
-111            android:directBootAware="false"
-111-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
-112            android:enabled="true"
-112-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
-113            android:exported="true"
-113-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
-114            android:permission="android.permission.DUMP" >
-114-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
-115            <intent-filter>
-115-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
-116                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
-116-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
-116-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
-117            </intent-filter>
-118            <intent-filter>
-118-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
-119                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
-119-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
-119-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
-120            </intent-filter>
-121            <intent-filter>
-121-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
-122                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
-122-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
-122-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
-123            </intent-filter>
-124            <intent-filter>
-124-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
-125                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
-125-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
-125-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
-126            </intent-filter>
-127        </receiver>
-128    </application>
-129
-130</manifest>
+60        <!-- Diálogo de selección de color de acento (abierto desde el logo del widget) -->
+61        <activity
+61-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:43:9-47:49
+62            android:name="com.djmanri3.Walkman.AccentColorActivity"
+62-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:44:13-48
+63            android:excludeFromRecents="true"
+63-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:47:13-46
+64            android:exported="true"
+64-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:45:13-36
+65            android:theme="@style/Theme.Walkman.Dialog" />
+65-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:46:13-56
+66
+67        <!-- Servicio multimedia: mantiene la MediaSession y la notificación -->
+68        <service
+68-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:50:9-58:19
+69            android:name="com.djmanri3.Walkman.MediaService"
+69-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:51:13-41
+70            android:exported="true"
+70-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:52:13-36
+71            android:foregroundServiceType="mediaPlayback" >
+71-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:53:13-58
+72            <intent-filter>
+72-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:54:13-57:29
+73                <action android:name="androidx.media3.session.MediaSessionService" />
+73-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:17-86
+73-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:55:25-83
+74                <action android:name="android.media.browse.MediaBrowserService" />
+74-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:17-83
+74-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:56:25-80
+75            </intent-filter>
+76        </service>
+77
+78        <!-- Receptor de botones multimedia (bluetooth / auriculares / teclado) -->
+79        <receiver
+79-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:61:9-67:20
+80            android:name="androidx.media.session.MediaButtonReceiver"
+80-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:62:13-70
+81            android:exported="true" >
+81-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:63:13-36
+82            <intent-filter>
+82-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:64:13-66:29
+83                <action android:name="android.intent.action.MEDIA_BUTTON" />
+83-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:17-77
+83-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:25-74
+84            </intent-filter>
+85        </receiver>
+86
+87        <!-- Widget de pantalla de inicio para controlar la reproducción -->
+88        <receiver
+88-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:70:9-80:20
+89            android:name="com.djmanri3.Walkman.WalkmanWidgetProvider"
+89-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:71:13-50
+90            android:exported="true" >
+90-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:72:13-36
+91            <intent-filter>
+91-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:73:13-76:29
+92                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+92-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:74:17-84
+92-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:74:25-81
+93                <action android:name="com.djmanri3.Walkman.action.WIDGET_UPDATE" />
+93-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:75:17-84
+93-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:75:25-81
+94            </intent-filter>
+95
+96            <meta-data
+96-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:77:13-79:63
+97                android:name="android.appwidget.provider"
+97-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:78:17-58
+98                android:resource="@xml/walkman_widget_info" />
+98-->/home/manri/github/app-android/app/src/main/AndroidManifest.xml:79:17-60
+99        </receiver>
+100
+101        <provider
+101-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+102            android:name="androidx.startup.InitializationProvider"
+102-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+103            android:authorities="com.djmanri3.Walkman.androidx-startup"
+103-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+104            android:exported="false" >
+104-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+105            <meta-data
+105-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+106                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+106-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+107                android:value="androidx.startup" />
+107-->[androidx.emoji2:emoji2:1.3.0] /home/manri/.gradle/caches/8.9/transforms/27fbc6f33c0ec7c17234cf593774cb95/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+108            <meta-data
+108-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+109                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+109-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+110                android:value="androidx.startup" />
+110-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/manri/.gradle/caches/8.9/transforms/db28d8a464d1c03e6e47a48f8b6a135d/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+111            <meta-data
+111-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+112                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+112-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+113                android:value="androidx.startup" />
+113-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+114        </provider>
+115
+116        <receiver
+116-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+117            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+117-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+118            android:directBootAware="false"
+118-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+119            android:enabled="true"
+119-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+120            android:exported="true"
+120-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+121            android:permission="android.permission.DUMP" >
+121-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+122            <intent-filter>
+122-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+123                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+123-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+123-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+124            </intent-filter>
+125            <intent-filter>
+125-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+126                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+126-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+126-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+127            </intent-filter>
+128            <intent-filter>
+128-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+129                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+129-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+129-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+130            </intent-filter>
+131            <intent-filter>
+131-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+132                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+132-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+132-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+133            </intent-filter>
+134        </receiver>
+135    </application>
+136
+137</manifest>

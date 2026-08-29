@@ -2911,6 +2911,7 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable btn_rect_bg
 drawable design_fab_background
 drawable design_ic_visibility
 drawable design_ic_visibility_off
@@ -3090,6 +3091,8 @@ drawable notification_template_icon_bg
 drawable notification_template_icon_low_bg
 drawable notification_tile_bg
 drawable notify_panel_notification_icon_bg
+drawable swatch_auto
+drawable swatch_circle
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
@@ -3187,6 +3190,7 @@ id beginning
 id blocking
 id bottom
 id bounce
+id btn_use
 id buttonPanel
 id cancel_action
 id cancel_button
@@ -3206,6 +3210,7 @@ id clip_horizontal
 id clip_vertical
 id clockwise
 id collapseActionView
+id color_picker
 id compress
 id confirm_button
 id container
@@ -3405,6 +3410,7 @@ id open_search_view_search_prefix
 id open_search_view_status_bar_spacer
 id open_search_view_toolbar
 id open_search_view_toolbar_container
+id opt_auto
 id outline
 id outward
 id packed
@@ -3422,6 +3428,8 @@ id pin
 id position
 id postLayout
 id pressed
+id preview
+id preview_swatch
 id progress_circular
 id progress_horizontal
 id radio
@@ -3681,6 +3689,7 @@ layout abc_search_dropdown_item_icons_2line
 layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
+layout activity_accent_color
 layout activity_main
 layout custom_dialog
 layout design_bottom_navigation_item
@@ -4623,6 +4632,7 @@ style Theme_MaterialComponents_Light_NoActionBar_Bridge
 style Theme_MaterialComponents_NoActionBar
 style Theme_MaterialComponents_NoActionBar_Bridge
 style Theme_Walkman
+style Theme_Walkman_Dialog
 style ThemeOverlay_AppCompat
 style ThemeOverlay_AppCompat_ActionBar
 style ThemeOverlay_AppCompat_Dark

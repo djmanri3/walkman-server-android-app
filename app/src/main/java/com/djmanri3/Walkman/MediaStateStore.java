@@ -53,6 +53,23 @@ public class MediaStateStore {
         return 0xFFAA00FF;
     }
 
+    /** Modo de acento: true = color personalizado, false = el de la carátula. */
+    public void setAccentManual(boolean v) { put("accentManual", v); }
+    public boolean isAccentManual() { return mPrefs.getBoolean("accentManual", false); }
+
+    /** Color personalizado elegido por el usuario (se usa si isAccentManual()). */
+    public void setAccentOverride(int v) { putInt("accentOverride", v); }
+    public int getAccentOverride() {
+        Object v = mPrefs.getAll().get("accentOverride");
+        if (v instanceof Integer) {
+            return (Integer) v;
+        }
+        if (v instanceof Long) {
+            return ((Long) v).intValue();
+        }
+        return 0xFF00E5FF;
+    }
+
     private void put(String key, String value) {
         mPrefs.edit().putString(key, value).apply();
     }

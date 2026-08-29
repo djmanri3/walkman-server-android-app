@@ -39,6 +39,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Diálogo de selección de color de acento (abierto desde el logo del widget) -->
+        <activity
+            android:name=".AccentColorActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Walkman.Dialog"
+            android:excludeFromRecents="true" />
+
         <!-- Servicio multimedia: mantiene la MediaSession y la notificación -->
         <service
             android:name=".MediaService"
