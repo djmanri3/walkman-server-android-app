@@ -77,6 +77,20 @@
             </intent-filter>
         </receiver>
 
+        <!-- Widget de pantalla de inicio para controlar la reproducción -->
+        <receiver
+            android:name="com.djmanri3.Walkman.WalkmanWidgetProvider"
+            android:exported="true" >
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.djmanri3.Walkman.action.WIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/walkman_widget_info" />
+        </receiver>
+
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="com.djmanri3.Walkman.androidx-startup"

@@ -26,6 +26,8 @@ import androidx.core.app.NotificationCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -51,6 +53,10 @@ public class MediaService extends Service {
 
     public static final String ACTION_PLAY = "com.djmanri3.Walkman.action.PLAY";
     public static final String ACTION_STOP = "com.djmanri3.Walkman.action.STOP";
+    public static final String ACTION_PAUSE = "com.djmanri3.Walkman.action.PAUSE";
+    public static final String ACTION_NEXT = "com.djmanri3.Walkman.action.NEXT";
+    public static final String ACTION_PREV = "com.djmanri3.Walkman.action.PREV";
+    public static final String ACTION_TOGGLE = "com.djmanri3.Walkman.action.TOGGLE";
 
     /** Referencia al servicio corriendo (null si no está en marcha). */
     private static MediaService sInstance;
@@ -77,6 +83,13 @@ public class MediaService extends Service {
     // Última URL de carátula realmente aplicada a la sesión.
     private static volatile String sAppliedArtUrl = null;
 
+    // Ruta en caché (fichero) de la última carátula guardada, para el widget.
+    private static volatile String sAppliedArtPath = null;
+
+    // Timestamp de la última actualización del widget (para limitar la
+    // frecuencia de broadcasts mientras se actualiza la posición).
+    private static volatile long sLastWidgetBroadcast = 0L;
+
     public static String appliedArtUrl() {
         return sAppliedArtUrl;
     }
@@ -98,6 +111,36 @@ public class MediaService extends Service {
 
     public static MediaService instance() {
         return sInstance;
+    }
+
+    /**
+     * Guarda el estado de reproducción para el widget y (si no se acaba de
+     * hacer hace menos de 1 s) envía un broadcast para que el widget se
+     * actualice en pantalla.
+     */
+    private static void persistAndNotify(Context context, String title, String artist,
+                                         String artworkUrl, String artworkPath,
+                                         boolean playing, long positionMs, long durationMs,
+                                         boolean force) {
+        if (context == null) {
+            return;
+        }
+        MediaStateStore st = new MediaStateStore(context);
+        st.setTitle(title);
+        st.setArtist(artist);
+        st.setArtworkUrl(artworkUrl);
+        st.setArtworkPath(artworkPath);
+        st.setPlaying(playing);
+        st.setPosition(positionMs);
+        st.setDuration(durationMs);
+
+        long now = System.currentTimeMillis();
+        if (force || now - sLastWidgetBroadcast > 1000L) {
+            sLastWidgetBroadcast = now;
+            Intent update = new Intent(WalkmanWidgetProvider.ACTION_UPDATE)
+                    .setPackage(context.getPackageName());
+            context.sendBroadcast(update);
+        }
     }
 
     public static void setCommandListener(CommandListener listener) {
@@ -194,6 +237,18 @@ public class MediaService extends Service {
                 case ACTION_PLAY:
                     dispatch("play", null);
                     break;
+                case ACTION_PAUSE:
+                    dispatch("pause", null);
+                    break;
+                case ACTION_NEXT:
+                    dispatch("next", null);
+                    break;
+                case ACTION_PREV:
+                    dispatch("prev", null);
+                    break;
+                case ACTION_TOGGLE:
+                    updateWidgetToggle();
+                    break;
                 case ACTION_STOP:
                     stopPlayback();
                     break;
@@ -203,6 +258,12 @@ public class MediaService extends Service {
             }
         }
         return START_NOT_STICKY;
+    }
+
+    /** Alterna play/pausa según el estado actual guardado para el widget. */
+    private void updateWidgetToggle() {
+        MediaStateStore st = new MediaStateStore(this);
+        dispatch(st.isPlaying() ? "pause" : "play", null);
     }
 
     /**
@@ -233,6 +294,10 @@ public class MediaService extends Service {
                 positionMs, durationMs);
         svc.postNotification(playing);
 
+        // Notificamos al widget de inmediato con el estado actual.
+        persistAndNotify(svc, title, artist, artworkUrl,
+                sAppliedArtPath, playing, positionMs, durationMs, true);
+
         // La carátula se descarga en segundo plano y, al terminar, se
         // actualiza la metadata y la notificación con el bitmap.
         if (artworkUrl != null && !artworkUrl.isEmpty()
@@ -248,6 +313,10 @@ public class MediaService extends Service {
                 if (art == null || generation != sArtGeneration) {
                     return;
                 }
+                String path = svc.saveArtworkToCache(art);
+                sAppliedArtPath = path;
+                int accent = AlbumArtColor.dominantColor(art);
+                new MediaStateStore(svc).setAccentColor(accent);
                 MediaMetadataCompat.Builder withArt = new MediaMetadataCompat.Builder()
                         .putString(MediaMetadataCompat.METADATA_KEY_TITLE, fTitle)
                         .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, fArtist)
@@ -262,6 +331,8 @@ public class MediaService extends Service {
                             : (fDur > 0 ? PlaybackStateCompat.STATE_PAUSED
                                         : PlaybackStateCompat.STATE_NONE), fPos, fDur);
                     svc.postNotification(fPlaying);
+                    persistAndNotify(svc, fTitle, fArtist, url, path,
+                            fPlaying, fPos, fDur, true);
                 });
             });
         } else {
@@ -281,6 +352,17 @@ public class MediaService extends Service {
                         ? PlaybackStateCompat.STATE_PAUSED
                         : PlaybackStateCompat.STATE_NONE);
         svc.setPlaybackState(state, positionMs, durationMs);
+        // Actualizamos el widget (el throttling interno evita broadcasts a cada
+        // poll). Lo hacemos siempre que haya una pista cargada.
+        MediaMetadataCompat meta = svc.mSession.getController().getMetadata();
+        if (meta != null) {
+            persistAndNotify(svc,
+                    meta.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
+                    meta.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
+                    appliedArtUrl(), sAppliedArtPath,
+                    playing, positionMs, durationMs,
+                    false);
+        }
     }
 
     /** Devuelve verdadero si la pista mostrada en la sesión es distinta. */
@@ -389,8 +471,7 @@ public class MediaService extends Service {
     }
 
     /** Descarga la carátula desde una URL remota (se llama en segundo plano). */
-    private Bitmap downloadArtwork(String url) {
-        try {
+    private Bitmap downloadArtwork(String url) {        try {
             URL u = new URL(url);
             HttpURLConnection conn = (HttpURLConnection) u.openConnection();
             conn.setConnectTimeout(5000);
@@ -416,6 +497,26 @@ public class MediaService extends Service {
             return null;
         } finally {
             // no-op: la conexión se cierra con el try-with-resources
+        }
+    }
+
+    /** Guarda la carátula en un fichero de caché para que el widget pueda
+     *  mostrarla sin volver a descargarla (se llama en segundo plano). */
+    private String saveArtworkToCache(Bitmap art) {
+        try {
+            File dir = new File(getCacheDir(), "artwork");
+            if (!dir.exists() && !dir.mkdirs()) {
+                return null;
+            }
+            File out = new File(dir, "current.png");
+            try (FileOutputStream fos = new FileOutputStream(out)) {
+                art.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                fos.flush();
+            }
+            return out.getAbsolutePath();
+        } catch (Exception e) {
+            Log.w(TAG, "No se pudo guardar la carátula en caché", e);
+            return null;
         }
     }
 

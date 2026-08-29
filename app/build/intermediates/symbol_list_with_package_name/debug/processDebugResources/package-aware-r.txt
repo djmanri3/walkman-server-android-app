@@ -3093,6 +3093,11 @@ drawable notify_panel_notification_icon_bg
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
+drawable walkman_logo
+drawable widget_art_frame
+drawable widget_background
+drawable widget_play_button_bg
+drawable widget_progress
 id ALT
 id BOTTOM_END
 id BOTTOM_START
@@ -3548,6 +3553,15 @@ id view_tree_view_model_store_owner
 id visible
 id visible_removing_fragment_view_tag
 id webview
+id widget_art
+id widget_artist
+id widget_logo
+id widget_next
+id widget_particles
+id widget_play
+id widget_prev
+id widget_progress
+id widget_title
 id withText
 id with_icon
 id withinBounds
@@ -3765,6 +3779,7 @@ layout select_dialog_item_material
 layout select_dialog_multichoice_material
 layout select_dialog_singlechoice_material
 layout support_simple_spinner_dropdown_item
+layout walkman_widget
 mipmap ic_launcher
 plurals mtrl_badge_content_description
 string abc_action_bar_home_description
@@ -5252,3 +5267,4 @@ styleable View android_theme android_focusable paddingEnd paddingStart theme
 styleable ViewBackgroundHelper android_background backgroundTint backgroundTintMode
 styleable ViewPager2 android_orientation
 styleable ViewStubCompat android_id android_layout android_inflatedId
+xml walkman_widget_info

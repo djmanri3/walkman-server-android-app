@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-64:12
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:2:1-77:12
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat-resources:1.7.0] /home/manri/.gradle/caches/8.9/transforms/74fc1268ff3f5642626e93f5ffaab0ee/transformed/appcompat-resources-1.7.0/AndroidManifest.xml:2:1-7:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:2:1-11:12
@@ -102,8 +102,8 @@ ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:5-
 	android:name
 		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:20:22-74
 application
-ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-62:19
-INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-62:19
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-75:19
+INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:22:5-75:19
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.12.0] /home/manri/.gradle/caches/8.9/transforms/b4d4520d3a7500151f758a57e313542a/transformed/material-1.12.0/AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.0.1] /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/AndroidManifest.xml:9:5-20
@@ -188,6 +188,28 @@ action#android.intent.action.MEDIA_BUTTON
 ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:17-77
 	android:name
 		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:58:25-74
+receiver#com.djmanri3.Walkman.WalkmanWidgetProvider
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:63:9-73:20
+	android:exported
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:65:13-36
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:64:13-50
+intent-filter#action:name:android.appwidget.action.APPWIDGET_UPDATE+action:name:com.djmanri3.Walkman.action.WIDGET_UPDATE
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:66:13-69:29
+action#android.appwidget.action.APPWIDGET_UPDATE
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:17-84
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:67:25-81
+action#com.djmanri3.Walkman.action.WIDGET_UPDATE
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:17-84
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:68:25-81
+meta-data#android.appwidget.provider
+ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:70:13-72:63
+	android:resource
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:72:17-60
+	android:name
+		ADDED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml:71:17-58
 uses-sdk
 INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /home/manri/github/app-android/app/src/main/AndroidManifest.xml

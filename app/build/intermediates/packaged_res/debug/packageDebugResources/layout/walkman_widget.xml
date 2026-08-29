@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/widget_background"
+    android:paddingStart="10dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="8dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <!-- Capa de partículas: suben desde la barra de progreso (parte inferior)
+         hacia arriba. El bitmap animado se genera en WalkmanWidgetProvider y se
+         publica aquí con setImageViewBitmap. -->
+    <ImageView
+        android:id="@+id/widget_particles"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="fill"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+
+    <!-- Contenido -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Carátula: a la izquierda, de tamaño fijo grande que abarca la zona
+             de contenido (título/artista/controles), encima de la barra. -->
+        <ImageView
+            android:id="@+id/widget_art"
+            android:layout_width="68dp"
+            android:layout_height="68dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop"
+            android:background="@drawable/widget_art_frame" />
+
+        <!-- Columna derecha: título/artista/controles centrados + barra abajo. -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:gravity="center_horizontal"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_artist"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:gravity="center_horizontal"
+                android:textColor="#B3FFFFFF"
+                android:textSize="10sp"
+                android:letterSpacing="0.03"
+                android:layout_marginTop="1dp" />
+
+            <!-- Controles multimedia: centrados horizontal y verticalmente. -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/widget_prev"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_marginEnd="22dp"
+                    android:src="@drawable/ic_skip_previous"
+                    android:background="@drawable/widget_play_button_bg"
+                    android:contentDescription="@string/prev"
+                    android:scaleType="centerInside" />
+
+                <ImageButton
+                    android:id="@+id/widget_play"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginEnd="22dp"
+                    android:src="@drawable/ic_play"
+                    android:background="@drawable/widget_play_button_bg"
+                    android:contentDescription="@string/play"
+                    android:scaleType="centerInside" />
+
+                <ImageButton
+                    android:id="@+id/widget_next"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:src="@drawable/ic_skip_next"
+                    android:background="@drawable/widget_play_button_bg"
+                    android:contentDescription="@string/next"
+                    android:scaleType="centerInside" />
+            </LinearLayout>
+
+            <!-- Barra de reproducción: abajo, a todo el ancho de la columna derecha.
+                 Se renderiza como bitmap con el color dominante. -->
+            <ImageView
+                android:id="@+id/widget_progress"
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="2dp"
+                android:scaleType="fitXY"
+                android:importantForAccessibility="no" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Logo de la app: en la esquina superior derecha, teñido con el color
+         dominante de la carátula. -->
+    <ImageView
+        android:id="@+id/widget_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="11dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="1dp"
+        android:layout_marginEnd="0dp"
+        android:src="@drawable/walkman_logo"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+</FrameLayout>
