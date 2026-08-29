@@ -27,6 +27,17 @@ public class AndroidBridge {
 
     private static final String TAG = "AndroidBridge";
 
+    /** Callback registrado por MainActivity para lanzar la selección SAF. */
+    public interface LocalFolderListener {
+        void onPickLocalFolder();
+    }
+
+    private static volatile LocalFolderListener sLocalFolderListener;
+
+    public static void setLocalFolderListener(LocalFolderListener l) {
+        sLocalFolderListener = l;
+    }
+
     public AndroidBridge() {
         // Sin estado propio; delega en MediaService.
     }
@@ -52,6 +63,16 @@ public class AndroidBridge {
                     title, artist, album, artwork, playing, position, duration);
         } catch (JSONException e) {
             Log.w(TAG, "JSON inválido en setMediaState", e);
+        }
+    }
+
+    /** Llamado desde JavaScript al pulsar "Elegir carpeta de música". */
+    @JavascriptInterface
+    public void pickLocalFolder() {
+        Log.d(TAG, "pickLocalFolder");
+        LocalFolderListener l = sLocalFolderListener;
+        if (l != null) {
+            l.onPickLocalFolder();
         }
     }
 }

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -16,8 +17,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Actividad principal que muestra la web WALKMAN en un WebView e inyecta el
@@ -28,9 +33,11 @@ import org.json.JSONTokener;
 public class MainActivity extends Activity {
 
     private static final String WALKMAN_URL = "https://djmanri3.github.io/walkman-server/";
+    private static final int REQ_FOLDER = 5001;
 
     private WebView mWebView;
     private Handler mHandler;
+    private MiniHttpServer mHttpServer;
 
     // Runner de polling para mantener sincronizados posición, estado y pista
     // del widget con el <audio> real del WebView, incluso cuando la web no
@@ -123,6 +130,12 @@ public class MainActivity extends Activity {
         // null cuando la web notifique su estado a través de AndroidBridge.
         startMediaService();
 
+        // Servidor HTTP local para servir los archivos de música elegidos en la
+        // web (el <audio> de HTML5 sólo reproduce URLs http/https).
+        mHttpServer = new MiniHttpServer(getApplicationContext());
+        mHttpServer.start();
+        AndroidBridge.setLocalFolderListener(this::launchLocalFolderPicker);
+
         // Escuchador de comandos del sistema -> JavaScript.
         MediaService.setCommandListener(new MediaService.CommandListener() {
             @Override
@@ -165,7 +178,7 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(true);
         s.setDatabaseEnabled(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         s.setJavaScriptCanOpenWindowsAutomatically(true);
 
         // Usa un User-Agent para que el servidor sirva la versión móvil/web.
@@ -257,6 +270,85 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** Lanza el selector de carpeta (SAF) solicitado por la web. */
+    private void launchLocalFolderPicker() {
+        runOnUiThread(() -> {
+            try {
+                Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                startActivityForResult(i, REQ_FOLDER);
+            } catch (Exception e) {
+                android.util.Log.e("LocalFolder", "No se pudo abrir el selector", e);
+            }
+        });
+    }
+
+    /** Recopila los archivos de la carpeta elegida y los inyecta a la web. */
+    private void handleFolderResult(Uri treeUri) {
+        if (mWebView == null || mHttpServer == null) {
+            return;
+        }
+        final WebView wv = mWebView;
+        final MiniHttpServer server = mHttpServer;
+        // La recopilación con DocumentFile es lenta con muchos archivos;
+        // se hace en un hilo de fondo para no congelar la interfaz (ANR).
+        new Thread(() -> {
+            final List<String> ids = new ArrayList<>();
+            final List<Uri> uris = new ArrayList<>();
+            try {
+                List<JSONObject> tracks = LocalMusicPicker.collectTree(
+                        getApplicationContext(), treeUri, ids, uris, server, server.getPort());
+
+                if (tracks.isEmpty()) {
+                    runOnUiThread(() -> {
+                        try {
+                            wv.evaluateJavascript(
+                                    "try { if (window.onAndroidLocalError) onAndroidLocalError('No se encontraron archivos de audio.'); } catch(e){}",
+                                    null);
+                        } catch (Exception ignored) {
+                        }
+                    });
+                    return;
+                }
+
+                JSONArray arr = new JSONArray();
+                for (JSONObject t : tracks) {
+                    arr.put(t);
+                }
+                final String json = arr.toString();
+                runOnUiThread(() -> {
+                    try {
+                        wv.evaluateJavascript(
+                                "try { if (window.onAndroidLocalTracks) onAndroidLocalTracks(" + json + "); } catch(e){}",
+                                null);
+                    } catch (Exception ignored) {
+                    }
+                });
+            } catch (Throwable t) {
+                android.util.Log.e("LocalFolder", "Error recopilando carpeta", t);
+            }
+        }, "local-picker").start();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_FOLDER && resultCode == RESULT_OK && data != null) {
+            Uri treeUri = data.getData();
+            if (treeUri != null) {
+                // Persistimos el acceso al árbol para poder leerlo más adelante
+                // (el servidor HTTP lo sirve desde el proceso de esta app).
+                try {
+                    getContentResolver().takePersistableUriPermission(treeUri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                } catch (Exception ignored) {
+                }
+                handleFolderResult(treeUri);
+            }
+        }
+    }
+
     @Override
     public void onBackPressed() {
         if (mWebView != null && mWebView.canGoBack()) {
@@ -285,7 +377,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         MediaService.setCommandListener(null);
+        AndroidBridge.setLocalFolderListener(null);
         mHandler.removeCallbacks(mPositionPoll);
+        if (mHttpServer != null) {
+            mHttpServer.stop();
+            mHttpServer = null;
+        }
         if (mWebView != null) {
             mWebView.destroy();
             mWebView = null;

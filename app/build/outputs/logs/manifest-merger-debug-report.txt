@@ -42,6 +42,7 @@ MERGED from [androidx.viewpager:viewpager:1.0.0] /home/manri/.gradle/caches/8.9/
 MERGED from [androidx.recyclerview:recyclerview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/cfe7a436d65df671e19cabab7884e724/transformed/recyclerview-1.1.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/ccb7155b84759ab93dd66aa5571c786b/transformed/customview-1.1.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:17:1-30:12
+MERGED from [androidx.documentfile:documentfile:1.0.1] /home/manri/.gradle/caches/8.9/transforms/82d96cf7b43ad58c09a635bd113f5e01/transformed/documentfile-1.0.1/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:17:1-55:12
 MERGED from [androidx.interpolator:interpolator:1.0.0] /home/manri/.gradle/caches/8.9/transforms/4e8e304324599b458d61b8fae777970c/transformed/interpolator-1.0.0/AndroidManifest.xml:17:1-22:12
@@ -51,7 +52,6 @@ MERGED from [androidx.cardview:cardview:1.0.0] /home/manri/.gradle/caches/8.9/tr
 MERGED from [androidx.startup:startup-runtime:1.1.1] /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/AndroidManifest.xml:17:1-33:12
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8.9/transforms/c6f03c1e6772935c5ccd227794005cc7/transformed/core-runtime-2.2.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:17:1-24:12
-MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.print:print:1.0.0] /home/manri/.gradle/caches/8.9/transforms/17976e65923912d1f5a695e89a707860/transformed/print-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.4.0] /home/manri/.gradle/caches/8.9/transforms/5d63084fa3f6b3d2d1c088d876e5b51c/transformed/annotation-experimental-1.4.0/AndroidManifest.xml:2:1-7:12
@@ -300,6 +300,8 @@ MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.
 MERGED from [androidx.customview:customview:1.1.0] /home/manri/.gradle/caches/8.9/transforms/ccb7155b84759ab93dd66aa5571c786b/transformed/customview-1.1.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.core:core:1.13.1] /home/manri/.gradle/caches/8.9/transforms/1c3eba2ff83689054fd06d61b1cd9f78/transformed/core-1.13.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.1] /home/manri/.gradle/caches/8.9/transforms/82d96cf7b43ad58c09a635bd113f5e01/transformed/documentfile-1.0.1/AndroidManifest.xml:20:5-44
+MERGED from [androidx.documentfile:documentfile:1.0.1] /home/manri/.gradle/caches/8.9/transforms/82d96cf7b43ad58c09a635bd113f5e01/transformed/documentfile-1.0.1/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.cursoradapter:cursoradapter:1.0.0] /home/manri/.gradle/caches/8.9/transforms/125eb447ec418e197792928f7ac156f5/transformed/cursoradapter-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.profileinstaller:profileinstaller:1.3.1] /home/manri/.gradle/caches/8.9/transforms/d252cf611dfeee4f1fd88b3f1f95271f/transformed/profileinstaller-1.3.1/AndroidManifest.xml:21:5-44
@@ -318,8 +320,6 @@ MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8
 MERGED from [androidx.arch.core:core-runtime:2.2.0] /home/manri/.gradle/caches/8.9/transforms/c6f03c1e6772935c5ccd227794005cc7/transformed/core-runtime-2.2.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
 MERGED from [androidx.tracing:tracing:1.0.0] /home/manri/.gradle/caches/8.9/transforms/c713cbc1f0158f5129ff92fe7dbf94b9/transformed/tracing-1.0.0/AndroidManifest.xml:20:5-22:41
-MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
-MERGED from [androidx.documentfile:documentfile:1.0.0] /home/manri/.gradle/caches/8.9/transforms/9a0b92f9f6b3c890fc34cb4403a07da6/transformed/documentfile-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.localbroadcastmanager:localbroadcastmanager:1.0.0] /home/manri/.gradle/caches/8.9/transforms/955be4a975cbcd5ce3b32db831311006/transformed/localbroadcastmanager-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.print:print:1.0.0] /home/manri/.gradle/caches/8.9/transforms/17976e65923912d1f5a695e89a707860/transformed/print-1.0.0/AndroidManifest.xml:20:5-44
