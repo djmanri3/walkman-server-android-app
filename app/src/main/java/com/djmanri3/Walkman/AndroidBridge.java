@@ -38,6 +38,19 @@ public class AndroidBridge {
         sLocalFolderListener = l;
     }
 
+    /** Callback para el panel de "Servidor Walkman" embebido en la web. */
+    public interface ServerUrlListener {
+        String onGetConfig();
+
+        void onSetConfig(String mode, String url);
+    }
+
+    private static volatile ServerUrlListener sServerUrlListener;
+
+    public static void setServerUrlListener(ServerUrlListener l) {
+        sServerUrlListener = l;
+    }
+
     public AndroidBridge() {
         // Sin estado propio; delega en MediaService.
     }
@@ -73,6 +86,23 @@ public class AndroidBridge {
         LocalFolderListener l = sLocalFolderListener;
         if (l != null) {
             l.onPickLocalFolder();
+        }
+    }
+
+    /** Devuelve el JSON {useCustom, url} con la configuración de servidor. */
+    @JavascriptInterface
+    public String getServerConfig() {
+        ServerUrlListener l = sServerUrlListener;
+        return l != null ? l.onGetConfig() : "{}";
+    }
+
+    /** Guarda la elección de servidor (mode: 'off' | 'custom') y recarga. */
+    @JavascriptInterface
+    public void setServerConfig(String mode, String url) {
+        Log.d(TAG, "setServerConfig mode=" + mode + " url=" + url);
+        ServerUrlListener l = sServerUrlListener;
+        if (l != null) {
+            l.onSetConfig(mode, url);
         }
     }
 }

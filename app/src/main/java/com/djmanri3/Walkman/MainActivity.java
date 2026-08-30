@@ -32,8 +32,72 @@ import java.util.List;
  */
 public class MainActivity extends Activity {
 
-    private static final String WALKMAN_URL = "https://djmanri3.github.io/walkman-server/";
     private static final int REQ_FOLDER = 5001;
+
+    /**
+     * Panel de "Servidor Walkman" inyectado en la sección de Ajustes de la web
+     * (sin modificar walkman-server): permite elegir entre la web oficial o una
+     * URL personalizada consultando/guardando a través de AndroidBridge.
+     */
+    private static final String SERVER_EMBED_SCRIPT = """
+            (function(){
+            if(window.__wmServerEmbedded)return;
+            var menu=document.querySelector('.settings-menu');
+            if(!menu)return;
+            if(document.getElementById('wm-server-group'))return;
+            var g=document.createElement('div');
+            g.className='settings-group';
+            g.id='wm-server-group';
+            g.innerHTML=''
+              +'<div class="settings-btn" id="wm-server-btn" style="cursor:pointer;">'
+              +'<span class="material-icons" style="color:var(--accent-color);">public</span>'
+              +'<span>Servidor Walkman-server</span></div>'
+              +'<div class="featured-size-wrap" id="wm-server-wrap" style="display:none;">'
+              +'<div class="settings-group-label">Origen de la web</div>'
+              +'<div class="accent-options" id="wm-server-options">'
+              +'<div class="accent-option" data-mode="official">Walkman oficial</div>'
+              +'<div class="accent-option" data-mode="custom">URL personalizada</div>'
+              +'</div>'
+              +'<div id="wm-server-custom" style="display:none; margin-top:8px;">'
+              +'<input id="wm-server-url" type="text" placeholder="https://tu-servidor.com/walkman" '
+              +'style="width:100%; box-sizing:border-box; padding:8px 10px; background:rgba(255,255,255,0.05); color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:5px; font-size:12px; outline:none;"/>'
+              +'<div id="wm-server-save" style="margin-top:6px; padding:9px; text-align:center; color:#000; font-size:12px; font-weight:600; border-radius:5px; cursor:pointer; background:var(--accent-color);">Guardar y recargar</div>'
+              +'</div>'
+              +'</div>';
+            var link=menu.querySelector('.settings-link');
+            if(link){menu.insertBefore(g,link);}else{menu.appendChild(g);}
+            function setActive(mode,url){
+              var opts=g.querySelectorAll('#wm-server-options .accent-option');
+              opts.forEach(function(o){o.classList.toggle('active',o.dataset.mode===mode);});
+              var cust=g.querySelector('#wm-server-custom');
+              if(cust){cust.style.display=(mode==='custom')?'':'none';}
+              var input=g.querySelector('#wm-server-url');
+              if(input&&mode==='custom'){input.value=url||'';}
+            }
+            var cfg={};
+            try{cfg=JSON.parse(AndroidBridge.getServerConfig()||'{}');}catch(e){}
+            var curMode=(cfg&&cfg.useCustom)?'custom':'official';
+            setActive(curMode,(cfg&&cfg.useCustom)?(cfg.url||''):'');
+            g.querySelector('#wm-server-btn').onclick=function(){
+              var wrap=g.querySelector('#wm-server-wrap');
+              wrap.style.display=(wrap.style.display==='none')?'':'none';
+            };
+            g.querySelectorAll('#wm-server-options .accent-option').forEach(function(o){
+              o.onclick=function(){
+                var m=o.dataset.mode;
+                setActive(m,'');
+                if(m==='official'){AndroidBridge.setServerConfig('off','');}
+              };
+            });
+            g.querySelector('#wm-server-save').onclick=function(){
+              var input=g.querySelector('#wm-server-url');
+              var url=(input&&input.value||'').trim();
+              if(!url)return;
+              AndroidBridge.setServerConfig('custom',url);
+            };
+            window.__wmServerEmbedded=true;
+            })();
+            """;
 
     private WebView mWebView;
     private Handler mHandler;
@@ -136,6 +200,23 @@ public class MainActivity extends Activity {
         mHttpServer.start();
         AndroidBridge.setLocalFolderListener(this::launchLocalFolderPicker);
 
+        // La web (mediante el panel de servidor inyectado en Ajustes) consulta y
+        // cambia la URL de la web (oficial o personalizada).
+        AndroidBridge.setServerUrlListener(new AndroidBridge.ServerUrlListener() {
+            @Override
+            public String onGetConfig() {
+                return serverConfigJson();
+            }
+
+            @Override
+            public void onSetConfig(String mode, String url) {
+                final boolean custom = "custom".equals(mode);
+                ServerConfig.setCustom(getApplicationContext(), custom,
+                        custom ? url : "");
+                runOnUiThread(() -> reloadWithConfiguredUrl());
+            }
+        });
+
         // Escuchador de comandos del sistema -> JavaScript.
         MediaService.setCommandListener(new MediaService.CommandListener() {
             @Override
@@ -215,7 +296,7 @@ public class MainActivity extends Activity {
         // Inyecta el puente AndroidBridge que la web ya espera.
         mWebView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
 
-        mWebView.loadUrl(WALKMAN_URL);
+        mWebView.loadUrl(ServerConfig.getUrl(this));
     }
 
     /**
@@ -224,6 +305,11 @@ public class MainActivity extends Activity {
      */
     private void injectBridgeHelpers() {
         if (mWebView == null) return;
+        // Panel "Servidor Walkman" embebido en la sección de Ajustes de la web.
+        try {
+            mWebView.evaluateJavascript(SERVER_EMBED_SCRIPT, null);
+        } catch (Exception ignored) {
+        }
         mWebView.evaluateJavascript(
                 "try { window.__wmAudio = document.getElementById('audio-player'); " +
                 "window.__wmAudio.addEventListener('loadedmetadata', function(){ " +
@@ -349,6 +435,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    /** JSON con la configuración actual de servidor para el panel de la web. */
+    private String serverConfigJson() {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("useCustom", ServerConfig.isCustom(this));
+            o.put("url", ServerConfig.isCustom(this) ? ServerConfig.getCustom(this) : "");
+        } catch (Exception ignored) {
+        }
+        return o.toString();
+    }
+
+    /** Recarga la WebView con la URL guardada en {@link ServerConfig}. */
+    private void reloadWithConfiguredUrl() {
+        if (mWebView == null) return;
+        mWebView.loadUrl(ServerConfig.getUrl(this));
+    }
+
     @Override
     public void onBackPressed() {
         if (mWebView != null && mWebView.canGoBack()) {
@@ -378,6 +481,7 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         MediaService.setCommandListener(null);
         AndroidBridge.setLocalFolderListener(null);
+        AndroidBridge.setServerUrlListener(null);
         mHandler.removeCallbacks(mPositionPoll);
         if (mHttpServer != null) {
             mHttpServer.stop();
