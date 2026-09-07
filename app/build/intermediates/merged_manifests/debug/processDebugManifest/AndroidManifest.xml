@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.djmanri3.Walkman"
-    android:versionCode="3"
-    android:versionName="3.0" >
+    android:versionCode="4"
+    android:versionName="4.0" >
 
     <uses-sdk
         android:minSdkVersion="24"
@@ -55,6 +55,29 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!--
+                 App Actions: expone actions.intent.PLAY_MEDIA / GET_THING a
+                 Google Assistant / Gemini para búsquedas por voz
+            -->
+            <meta-data
+                android:name="android.app.actions.assistant"
+                android:resource="@xml/shortcuts" />
+        </activity>
+
+        <!--
+             Búsqueda por voz del Asistente: actividad sin interfaz que recibe
+             las órdenes y reenvía la consulta a MainActivity para reproducirla
+        -->
+        <activity
+            android:name="com.djmanri3.Walkman.VoiceSearchActivity"
+            android:exported="true"
+            android:theme="@android:style/Theme.NoDisplay" >
+            <intent-filter>
+                <action android:name="android.media.action.MEDIA_PLAY_FROM_SEARCH" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
         </activity>
 
         <!-- Diálogo de selección de color de acento (abierto desde el logo del widget) -->
@@ -63,6 +86,11 @@
             android:excludeFromRecents="true"
             android:exported="true"
             android:theme="@style/Theme.Walkman.Dialog" />
+
+        <!-- Android Auto: permite que el sistema de infoentretenimiento conecte -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
 
         <!-- Servicio multimedia: mantiene la MediaSession y la notificación -->
         <service

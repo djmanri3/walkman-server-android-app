@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  App Actions (Google Assistant / Gemini): "Oye Google, reproduce <X> con
+  Walkman". Declara el BII actions.intent.PLAY_MEDIA para reproducir un
+  artista/álbum/canción/lista y actions.intent.GET_THING para búsquedas que
+  no se pueden reproducir directamente. La consulta se entrega a la
+  VoiceSearchActivity por el extra "query"; MainActivity la recibe como
+  EXTRA_VOICE_QUERY y dispara wmPlaySearch (y la búsqueda por servidor).
+
+  Para que Assistant enrute a los usuarios finales la capability debe
+  publicarse en Google Actions Center (build de prueba o versión pública).
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <capability android:name="actions.intent.PLAY_MEDIA">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.djmanri3.Walkman"
+            android:targetClass="com.djmanri3.Walkman.VoiceSearchActivity">
+            <parameter android:name="media.@type" android:key="mediaType" android:required="false" />
+            <parameter android:name="media.name" android:key="query" android:required="true" />
+        </intent>
+    </capability>
+
+    <capability android:name="actions.intent.GET_THING">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.djmanri3.Walkman"
+            android:targetClass="com.djmanri3.Walkman.VoiceSearchActivity">
+            <parameter android:name="thing.name" android:key="query" android:required="true" />
+        </intent>
+    </capability>
+</shortcuts>

@@ -34,6 +34,424 @@ public class MainActivity extends Activity {
 
     private static final int REQ_FOLDER = 5001;
 
+    /** Extra con la consulta de voz recibida vía VoiceSearchActivity. */
+    static final String EXTRA_VOICE_QUERY = "com.djmanri3.Walkman.voice_query";
+
+    /**
+     * Script inyectado para extraer la biblioteca (álbumes, playlists y pistas)
+     * de la web WALKMAN y enviarla a Android Auto a través de AndroidBridge.
+     *
+     * La web usa globals de nivel superior: fetchItems(), embyConfig,
+     * SERVER_TYPES, localTracks, playlist, playTrack(), toggleShuffle(),
+     * toggleRepeat(), renderQueueList(), refreshCarouselImages(), switchTab().
+     * Cada 'let'/const de nivel superior es alcanzable por nombre desde este
+     * script inyectado (ámbito léxico global).
+     */
+    private static final String LIBRARY_SCRIPT = """
+            (function(){
+            if(window.__wmAAready)return;
+            window.__wmAAready=true;
+            function isStreaming(){ try{ return !!embyConfig && !!SERVER_TYPES && !!embyConfig.serverType && embyConfig.serverType!=='local'; }catch(e){ return false; } }
+            function getSt(){ try{ return SERVER_TYPES[embyConfig.serverType]||null; }catch(e){ return null; } }
+            function rawImg(it){ try{ if(typeof getImageUrl==='function'){ return getImageUrl(it)||''; } }catch(e){ return ''; } return ''; }
+            function aaImg(it){
+              var u=rawImg(it);
+              if(!u||u.indexOf('data:')===0||u.indexOf('blob:')===0)return '';
+              if(u.indexOf('/Images/Primary')!==-1){
+                u+=(u.indexOf('?')===-1)?'?':'&';
+                u+='maxWidth=512&quality=80';
+              }
+              return u;
+            }
+            function pushLibraryParts(A,P,R){
+              if(window.AndroidBridge){
+                try{ AndroidBridge.pushAlbums(JSON.stringify(A)); }catch(e){}
+                try{ AndroidBridge.pushPlaylists(JSON.stringify(P)); }catch(e){}
+                try{ AndroidBridge.pushArtists(JSON.stringify(R)); }catch(e){}
+              }
+            }
+            function wmAALibraries(){
+              // Bibliotecas de música del servidor conectado (Emby/Jellyfin/Plex).
+              var out=[];
+              var st=null; try{ st=embyConfig.serverType||null; }catch(e){}
+              var libs=(typeof availableLibraries!=='undefined'&&Array.isArray(availableLibraries))?availableLibraries:[];
+              var cur=''; try{ cur=embyConfig.libraryId!=null?String(embyConfig.libraryId):''; }catch(e){}
+              libs.forEach(function(l){
+                var lid=l.Id!=null?String(l.Id):(l.key!=null?String(l.key):'');
+                var name=l.Name||l.title||'';
+                if(!lid||!name)return;
+                var t=l.CollectionType||l.type||'';
+                if(st==='plex'){ if(l.type&&l.type!=='artist')return; }
+                else if(t&&t.toLowerCase()!=='music')return;
+                out.push({id:lid,name:name,current:(!!cur&&cur===lid)});
+              });
+              try{
+                out.sort(function(a,b){ return a.name.localeCompare(b.name); });
+              }catch(e){}
+              return out;
+            }
+            function pushLibrariesPart(){
+              if(!window.AndroidBridge)return;
+              try{ AndroidBridge.pushLibraries(JSON.stringify(wmAALibraries())); }catch(e){}
+            }
+            function pushLocal(){
+              var A=[],P=[],R=[];
+              if(Array.isArray(localTracks)){
+                var map={}, artMap={};
+                localTracks.forEach(function(t){
+                  if(t.Type==='Playlist'){ P.push({id:t.Id,name:t.Name||'',imageUrl:t.coverUrl||''}); return; }
+                  var key=t.Album||'Desconocido';
+                  if(!map[key]){ map[key]={id:'local_album_'+key,name:key,artist:t.AlbumArtist||((t.Artists&&t.Artists[0])||''),imageUrl:t.coverUrl||''}; }
+                  else if(!map[key].imageUrl&&t.coverUrl){ map[key].imageUrl=t.coverUrl; }
+                  var art=(t.Artists&&t.Artists[0])||'Desconocido';
+                  if(!artMap[art]){ artMap[art]={id:'local_artist_'+art,name:art,artist:'',imageUrl:t.coverUrl||''}; }
+                  else if(!artMap[art].imageUrl&&t.coverUrl){ artMap[art].imageUrl=t.coverUrl; }
+                });
+                Object.keys(map).forEach(function(k){ A.push(map[k]); });
+                Object.keys(artMap).forEach(function(k){ R.push(artMap[k]); });
+              }
+              pushLibraryParts(A,P,R);
+              return true;
+            }
+            function pushStreaming(){
+              var st=getSt(); if(!st) return false;
+              var qA=fetchItems(st.Album).then(function(r){return r;}).catch(function(){return null;});
+              var qP=fetchItems(st.Playlist).then(function(r){return r;}).catch(function(){return null;});
+              var qR=(typeof st.Artist==='undefined'||st.Artist===null)
+                ?Promise.resolve(null)
+                :fetchItems(st.Artist).then(function(r){return r;}).catch(function(){return null;});
+              return Promise.all([qA,qP,qR]).then(function(rs){
+                // Corrige el AlbumId de cada álbum: muchos álbumes Emby/Jellyfin
+                // reportan imagen en su Id pero 404 al pedirla; la portada real
+                // está en su primera canción. resolveAlbumCoverIds asigna a
+                // item.AlbumId el Id de la primera pista (que sí trae Primary),
+                // de modo que getImageUrl(item) devuelva una URL que responde.
+                var A=[],P=[],R=[];
+                var albums=rs[0]?rs[0].Items||[]:[];
+                if(typeof resolveAlbumCoverIds==='function'){
+                  try{ return resolveAlbumCoverIds(albums).then(function(){
+                    return buildParts(albums); }); }catch(e){}
+                }
+                return buildParts(albums);
+                function buildParts(albums){
+                  A=albums.map(function(it){
+                    return {id:it.Id,name:it.Name||'',artist:it.AlbumArtist||((it.Artists&&it.Artists[0])||''),imageUrl:aaImg(it)};
+                  });
+                  if(rs[1]&&rs[1].Items){
+                    rs[1].Items.forEach(function(it){ P.push({id:it.Id,name:it.Name||'',imageUrl:aaImg(it)}); });
+                  }
+                  if(rs[2]&&rs[2].Items){
+                    rs[2].Items.forEach(function(it){ R.push({id:it.Id,name:it.Name||'',imageUrl:aaImg(it)}); });
+                  }
+                  pushLibraryParts(A,P,R);
+                  return true;
+                }
+              }).catch(function(){ return false; });
+            }
+            window.wmLibraryPush=function(){
+              pushLibrariesPart();
+              try{ return isStreaming()?pushStreaming():pushLocal(); }catch(e){ return false; }
+            };
+            window.wmSelectLibrary=function(libId){
+              var id=String(libId||'');
+              if(!id)return false;
+              try{
+                embyConfig.libraryId=id;
+                if(typeof saveServerSettings==='function'){ try{ saveServerSettings(); }catch(e){} }
+                if(typeof updateCategoryCounts==='function'){ try{ updateCategoryCounts(); }catch(e){} }
+                // Empuja la biblioteca del servidor elegido recién seleccionado.
+                return window.wmLibraryPush();
+              }catch(e){ return false; }
+            };
+            window.wmPlayShuffle=function(){
+              // "Aleatorio de todas las canciones" (Android Auto). Igual que el
+              // botón de la web (playShuffleAll): carga todas las pistas de la
+              // biblioteca y reproduce en orden aleatorio desde la 0.
+              try{
+                if(isStreaming()){
+                  var st=getSt();
+                  return Promise.resolve(fetchItems(st.Audio)).then(function(r){
+                    var items=r&&r.Items||[];
+                    if(!items.length)return false;
+                    if(typeof playShuffleAll==='function'){ playShuffleAll(items); try{ if(typeof wmQueueFor==='function'){ wmQueueFor(); } }catch(e2){} return true; }
+                    return false;
+                  }).catch(function(){ return false; });
+                }
+                var arr=[];
+                if(Array.isArray(localTracks)){
+                  localTracks.forEach(function(t){ if(t.Type!=='Playlist'){ arr.push(t); } });
+                }
+                if(!arr.length)return false;
+                if(typeof playShuffleAll==='function'){ playShuffleAll(arr); try{ if(typeof wmQueueFor==='function'){ wmQueueFor(); } }catch(e2){} return true; }
+                return false;
+              }catch(e){ return false; }
+            };
+            window.wmQueueFor=function(){
+              // Cola de reproducción actual (Android Auto): lista las pistas en el
+              // orden en que suenan y marca la que está en curso. Al pulsar una
+              // pista se reproduce desde ahí (playTrack(index)).
+              try{
+                var arr=[];
+                if(Array.isArray(playlist)){
+                  var cur=currentTrackIndex||0;
+                  playlist.forEach(function(t,i){
+                    var img='';
+                    try{ img=isStreaming()?aaImg(t):(t&&t.coverUrl?t.coverUrl:''); }catch(e){ img=''; }
+                    arr.push({index:i,name:t.Name||'',artist:t.AlbumArtist||((t.Artists&&t.Artists[0])||''),imageUrl:img,current:(i===cur)});
+                  });
+                }
+                if(window.AndroidBridge){ try{ AndroidBridge.pushQueue(JSON.stringify(arr)); }catch(e){} }
+                return true;
+              }catch(e){ return false; }
+            };
+            window.wmTracksFor=function(containerId,kind){
+              try{
+                if(isStreaming()){
+                  var st=getSt();
+                  return Promise.resolve(fetchItems(st.Audio, containerId, kind==='playlist'?'Playlist':'MusicAlbum'))
+                  .then(function(r){
+                    var arr=(r&&r.Items||[]).map(function(t){
+                      return {id:t.Id,name:t.Name||'',artist:t.AlbumArtist||((t.Artists&&t.Artists[0])||''),imageUrl:aaImg(t),duration:(t.Duration||0)*1000};
+                    });
+                    if(window.AndroidBridge){ try{ AndroidBridge.pushTracks(containerId,JSON.stringify(arr)); }catch(e){} }
+                    return true;
+                  }).catch(function(){ return false; });
+                }
+                var arr=[];
+                if(kind==='playlist'){
+                  var pl=localTracks.find(function(t){ return t.Type==='Playlist'&&String(t.Id)===String(containerId); });
+                  if(pl&&Array.isArray(pl.PlaylistIds)){
+                    var byId={}; localTracks.forEach(function(t){ byId[String(t.Id)]=t; });
+                    arr=pl.PlaylistIds.map(function(id){ return byId[String(id)]; }).filter(Boolean);
+                  }
+                }else{
+                  var key=containerId;
+                  if(key.indexOf('local_album_')===0){ key=key.substring(11); }
+                  arr=localTracks.filter(function(t){ return t.Type!=='Playlist'&&String(t.Album)===String(key); });
+                }
+                var out=arr.map(function(t){ return {id:t.Id,name:t.Name||'',artist:t.AlbumArtist||((t.Artists&&t.Artists[0])||''),imageUrl:t.coverUrl||'',duration:(t.Duration||0)*1000}; });
+                if(window.AndroidBridge){ try{ AndroidBridge.pushTracks(containerId,JSON.stringify(out)); }catch(e){} }
+                return true;
+              }catch(e){ return false; }
+            };
+            window.wmArtistAlbums=function(artistId,name){
+              try{
+                if(isStreaming()){
+                  var st=getSt();
+                  // Igual que la web: las canciones del artista salen con
+                  // fetchItems(Audio, artistId) — no hay nivel "álbumes" intermedio.
+                  return Promise.resolve(fetchItems(st.Audio, artistId, 'MusicArtist'))
+                  .then(function(r){
+                    var arr=(r&&r.Items||[]).map(function(t){
+                      return {id:t.Id,name:t.Name||'',artist:t.AlbumArtist||((t.Artists&&t.Artists[0])||''),imageUrl:aaImg(t),duration:(t.Duration||0)*1000};
+                    });
+                    if(window.AndroidBridge){ try{ AndroidBridge.pushArtistAlbums(artistId,JSON.stringify(arr)); }catch(e){} }
+                    return true;
+                  }).catch(function(){ return false; });
+                }
+                var nm=name||'';
+                if(artistId.indexOf('local_artist_')===0){ nm=artistId.substring(13); }
+                var out=[];
+                if(Array.isArray(localTracks)){
+                  localTracks.forEach(function(t){
+                    if(t.Type==='Playlist')return;
+                    if((t.Artists&&t.Artists[0])!==nm)return;
+                    out.push({id:t.Id,name:t.Name||'',artist:t.AlbumArtist||t.Artists[0],imageUrl:t.coverUrl||'',duration:(t.Duration||0)*1000});
+                  });
+                }
+                if(window.AndroidBridge){ try{ AndroidBridge.pushArtistAlbums(artistId,JSON.stringify(out)); }catch(e){} }
+                return true;
+              }catch(e){ return false; }
+            };
+            window.wmPlayContainer=function(containerId,kind,title,trackId){
+              return window.__wmLoadTracks(containerId,kind).then(function(tracks){
+                if(!tracks||!tracks.length){
+                  try{ if(window.AndroidBridge){ AndroidBridge.setMediaState(JSON.stringify({title:title||'Lista vacía',artist:'',album:'',artwork:'',playing:false,position:0,duration:0})); } }catch(e2){}
+                  return false;
+                }
+                try{
+                  playlist=tracks.slice();
+                  originalPlaylist=tracks.slice();
+                  playlistVersion++;
+                  if(typeof renderQueueList==='function'){ try{ renderQueueList(); }catch(e3){} }
+                  if(typeof refreshCarouselImages==='function'){ try{ refreshCarouselImages(); }catch(e4){} }
+                  var idx=0;
+                  if(trackId){ for(var i=0;i<tracks.length;i++){ if(String(tracks[i].Id)===String(trackId)){ idx=i; break; } } }
+                  if(typeof playTrack==='function'){ playTrack(idx); }
+                  if(typeof switchTab==='function'){ try{ switchTab('playing'); }catch(e5){} }
+                  try{ if(typeof wmQueueFor==='function'){ wmQueueFor(); } }catch(e6b){}
+                  return true;
+                }catch(e6){ return false; }
+              });
+            };
+            window.wmPlayArtist=function(artistId,name){
+              return window.__wmArtistTracks(artistId,name).then(function(tracks){
+                if(!tracks||!tracks.length)return false;
+                try{
+                  playlist=tracks.slice();
+                  originalPlaylist=tracks.slice();
+                  playlistVersion++;
+                  if(typeof renderQueueList==='function'){ try{ renderQueueList(); }catch(e3){} }
+                  if(typeof refreshCarouselImages==='function'){ try{ refreshCarouselImages(); }catch(e4){} }
+                  if(typeof playTrack==='function'){ playTrack(0); }
+                  if(typeof switchTab==='function'){ try{ switchTab('playing'); }catch(e5){} }
+                  try{ if(typeof wmQueueFor==='function'){ wmQueueFor(); } }catch(e6b){}
+                  return true;
+                }catch(e6){ return false; }
+              });
+            };
+            window.wmSearch=function(query){
+              var q=String(query||'').trim();
+              if(!q) return Promise.resolve([]);
+              try{
+                if(isStreaming()){
+                  var st=getSt();
+                  if(st===SERVER_TYPES.plex){
+                    var pu=embyConfig.host+'/search?query='+encodeURIComponent(q)+'&limit=40&X-Plex-Token='+encodeURIComponent(embyConfig.token);
+                    return fetch(pu).then(function(r){ return r.json(); }).then(function(d){
+                      var out=[]; var mc=d&&d.MediaContainer&&d.MediaContainer.Metadata||[];
+                      mc.forEach(function(h){
+                        var kind=null;
+                        if(h.type==='track')kind='track';
+                        else if(h.type==='album')kind='album';
+                        else if(h.type==='artist')kind='artist';
+                        else if(h.type==='playlist')kind='playlist';
+                        if(!kind)return;
+                        var img=(h.thumb?embyConfig.host+h.thumb:'');
+                        var container=(kind==='track')?(h.parentRatingKey||''):'';
+                        out.push({kind:kind,id:String(h.ratingKey||''),name:h.title||'',sub:h.artist||h.parentTitle||'',imageUrl:img,container:container});
+                      });
+                      if(window.AndroidBridge){ try{ AndroidBridge.pushSearchResults(q,JSON.stringify(out)); }catch(e){} }
+                      return out;
+                    }).catch(function(){ return []; });
+                  }
+                  var url=embyConfig.host+'/Items?SearchTerm='+encodeURIComponent(q)
+                    +'&IncludeItemTypes=Audio,MusicAlbum,MusicArtist,Playlist&Recursive=true'
+                    +'&Limit=60&UserId='+encodeURIComponent(embyConfig.userId||'')
+                    +'&api_key='+encodeURIComponent(embyConfig.token);
+                  return fetch(url).then(function(r){ return r.json(); }).then(function(d){
+                    var out=[];
+                    (d.Items||[]).forEach(function(it){
+                      if(it.Type==='MusicAlbum'){ out.push({kind:'album',id:it.Id,name:it.Name||'',sub:it.AlbumArtist||((it.Artists&&it.Artists[0])||''),imageUrl:aaImg(it),container:''}); }
+                      else if(it.Type==='MusicArtist'){ out.push({kind:'artist',id:it.Id,name:it.Name||'',sub:'',imageUrl:aaImg(it),container:''}); }
+                      else if(it.Type==='Playlist'){ out.push({kind:'playlist',id:it.Id,name:it.Name||'',sub:'',imageUrl:aaImg(it),container:''}); }
+                      else if(it.Type==='Audio'){ out.push({kind:'track',id:it.Id,name:it.Name||'',sub:it.AlbumArtist||((it.Artists&&it.Artists[0])||''),imageUrl:aaImg(it),container:it.AlbumId||''}); }
+                    });
+                    if(window.AndroidBridge){ try{ AndroidBridge.pushSearchResults(q,JSON.stringify(out)); }catch(e){} }
+                    return out;
+                  }).catch(function(){ return []; });
+                }
+                var out=[];
+                if(Array.isArray(localTracks)){
+                  var qt=q.toLowerCase(), seenA={}, seenR={};
+                  localTracks.forEach(function(t){
+                    if(t.Type==='Playlist'){
+                      if((t.Name||'').toLowerCase().indexOf(qt)!==-1){
+                        out.push({kind:'playlist',id:t.Id,name:t.Name||'',sub:'',imageUrl:t.coverUrl||'',container:''});
+                      }
+                      return;
+                    }
+                    var nm=t.Name||'', ar=(t.Artists&&t.Artists[0])||t.AlbumArtist||'', al=t.Album||'';
+                    if(!seenA[al]&&al.toLowerCase().indexOf(qt)!==-1){ seenA[al]=1; out.push({kind:'album',id:'local_album_'+al,name:al,sub:ar,imageUrl:t.coverUrl||'',container:''}); }
+                    if(!seenR[ar]&&ar.toLowerCase().indexOf(qt)!==-1){ seenR[ar]=1; out.push({kind:'artist',id:'local_artist_'+ar,name:ar,sub:'',imageUrl:t.coverUrl||'',container:''}); }
+                    if(nm.toLowerCase().indexOf(qt)!==-1||ar.toLowerCase().indexOf(qt)!==-1){
+                      out.push({kind:'track',id:t.Id,name:nm,sub:ar,imageUrl:t.coverUrl||'',container:'local_album_'+al});
+                    }
+                  });
+                }
+                if(window.AndroidBridge){ try{ AndroidBridge.pushSearchResults(q,JSON.stringify(out)); }catch(e){} }
+                return Promise.resolve(out);
+              }catch(e){ return Promise.resolve([]); }
+            };
+            window.wmPlaySearch=function(query){
+              return window.wmSearch(query).then(function(list){
+                try{
+                  var lq=String(query||'').toLowerCase();
+                  function pick(arr){ for(var i=0;i<arr.length;i++){ if((arr[i].name||'').toLowerCase()===lq)return arr[i]; } return arr[0]; }
+                  var cand=[pick(list.filter(function(x){return x.kind==='artist';})),
+                            pick(list.filter(function(x){return x.kind==='album';})),
+                            pick(list.filter(function(x){return x.kind==='playlist';})),
+                            pick(list.filter(function(x){return x.kind==='track';}))].filter(Boolean);
+                  var exact=cand.filter(function(c){ return (c.name||'').toLowerCase()===lq; });
+                  var pool=exact.length?exact:cand;
+                  var best=pool[0]; if(!best) return false;
+                  if(best.kind==='artist') return window.wmPlayArtist(best.id,best.name);
+                  if(best.kind==='album') return window.wmPlayContainer(best.id,'album',best.name,'');
+                  if(best.kind==='playlist') return window.wmPlayContainer(best.id,'playlist',best.name,'');
+                  if(best.kind==='track'){
+                    if(best.container) return window.wmPlayContainer(best.container,'album',best.name,best.id);
+                    return false;
+                  }
+                  return false;
+                }catch(e){ return false; }
+              });
+            };
+            window.__wmLoadTracks=function(containerId,kind){
+              if(isStreaming()){
+                var st=getSt();
+                var pk=kind==='playlist'?'Playlist':(kind==='artist'?'MusicArtist':'MusicAlbum');
+                return Promise.resolve(fetchItems(st.Audio, containerId, pk))
+                .catch(function(){ return null; }).then(function(r){ return (r&&r.Items)?r.Items:[]; });
+              }
+              return new Promise(function(res){
+                if(!Array.isArray(localTracks)){ res([]); return; }
+                if(kind==='playlist'){
+                  var pl=localTracks.find(function(t){ return t.Type==='Playlist'&&String(t.Id)===String(containerId); });
+                  if(pl&&Array.isArray(pl.PlaylistIds)){
+                    var byId={}; localTracks.forEach(function(t){ byId[String(t.Id)]=t; });
+                    res(pl.PlaylistIds.map(function(id){ return byId[String(id)]; }).filter(Boolean));
+                  }else{ res([]); }
+                }else if(kind==='artist'){
+                  var nm=containerId;
+                  if(nm.indexOf('local_artist_')===0){ nm=nm.substring(13); }
+                  res(localTracks.filter(function(t){ return t.Type!=='Playlist'&&(t.Artists&&t.Artists[0])===nm; }));
+                }else{
+                  var key=containerId;
+                  if(key.indexOf('local_album_')===0){ key=key.substring(11); }
+                  res(localTracks.filter(function(t){ return t.Type!=='Playlist'&&String(t.Album)===String(key); }));
+                }
+              });
+            };
+            window.__wmArtistTracks=function(artistId,name){
+              if(isStreaming()){
+                var st=getSt();
+                return Promise.resolve(fetchItems(st.Album, artistId, 'MusicArtist'))
+                .catch(function(){ return null; }).then(function(r){
+                  var albums=(r&&r.Items)?r.Items:[];
+                  if(!albums.length)return [];
+                  return Promise.all(albums.map(function(al){
+                    return fetchItems(st.Audio, al.Id, 'MusicAlbum')
+                      .then(function(r2){ return (r2&&r2.Items)?r2.Items:[]; })
+                      .catch(function(){ return []; });
+                  })).then(function(lists){
+                    var all=[];
+                    lists.forEach(function(l){ all=all.concat(l); });
+                    return all;
+                  });
+                }).catch(function(){ return []; });
+              }
+              return new Promise(function(res){
+                if(!Array.isArray(localTracks)){ res([]); return; }
+                var nm=name||'';
+                if(artistId.indexOf('local_artist_')===0){ nm=artistId.substring(13); }
+                res(localTracks.filter(function(t){ return t.Type!=='Playlist'&&(t.Artists&&t.Artists[0])===nm; }));
+              });
+            };
+            var retries=0, iv=null;
+            function tryInit(){
+              try{
+                var r=window.wmLibraryPush();
+                if(r&&typeof r.then==='function'){ r.then(function(ok){ if(ok&&iv){ clearInterval(iv); iv=null; } }); }
+                else if(r&&iv){ clearInterval(iv); iv=null; }
+              }catch(e){}
+              if(iv&&++retries>40){ clearInterval(iv); iv=null; }
+            }
+            if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',tryInit); }
+            else { tryInit(); }
+            iv=window.setInterval(tryInit,3000);
+            })();
+            """;
+
     /**
      * Panel de "Servidor Walkman" inyectado en la sección de Ajustes de la web
      * (sin modificar walkman-server): permite elegir entre la web oficial o una
@@ -102,6 +520,8 @@ public class MainActivity extends Activity {
     private WebView mWebView;
     private Handler mHandler;
     private MiniHttpServer mHttpServer;
+    private boolean mWebReady;
+    private String[] mPendingCommand;
 
     // Runner de polling para mantener sincronizados posición, estado y pista
     // del widget con el <audio> real del WebView, incluso cuando la web no
@@ -188,6 +608,9 @@ public class MainActivity extends Activity {
         requestNotificationPermission();
 
         mWebView = findViewById(R.id.webview);
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
         setupWebView();
 
         // Aseguramos que el MediaService exista para que instance() no sea
@@ -279,6 +702,12 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 injectBridgeHelpers();
+                mWebReady = true;
+                if (mPendingCommand != null) {
+                    String[] p = mPendingCommand;
+                    mPendingCommand = null;
+                    executeCommand(p[0], p[1]);
+                }
                 mHandler.postDelayed(mPositionPoll, 500);
             }
         });
@@ -294,7 +723,7 @@ public class MainActivity extends Activity {
         mWebView.setBackgroundColor(0xFF000000);
 
         // Inyecta el puente AndroidBridge que la web ya espera.
-        mWebView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
+        mWebView.addJavascriptInterface(new AndroidBridge(getApplicationContext()), "AndroidBridge");
 
         mWebView.loadUrl(ServerConfig.getUrl(this));
     }
@@ -310,6 +739,11 @@ public class MainActivity extends Activity {
             mWebView.evaluateJavascript(SERVER_EMBED_SCRIPT, null);
         } catch (Exception ignored) {
         }
+        // Script de biblioteca para Android Auto (álbumes, playlists, pistas).
+        try {
+            mWebView.evaluateJavascript(LIBRARY_SCRIPT, null);
+        } catch (Exception ignored) {
+        }
         mWebView.evaluateJavascript(
                 "try { window.__wmAudio = document.getElementById('audio-player'); " +
                 "window.__wmAudio.addEventListener('loadedmetadata', function(){ " +
@@ -323,6 +757,12 @@ public class MainActivity extends Activity {
     /** Traduce una orden del sistema a una llamada JavaScript. */
     private void executeCommand(String command, String arg) {
         if (mWebView == null) return;
+        if (!mWebReady) {
+            // La web aún no ha terminado de cargar (p. ej. voz en arranque en
+            // frío): retenemos la última orden y la ejecutamos en onPageFinished.
+            mPendingCommand = new String[]{command, arg};
+            return;
+        }
         switch (command) {
             case "play":
             case "pause":
@@ -351,9 +791,152 @@ public class MainActivity extends Activity {
             case "stop":
                 mWebView.evaluateJavascript("try { var d=document.getElementById('audio-player'); if(d){d.pause(); d.currentTime=0;} } catch(e){}", null);
                 break;
+            case "play_all":
+                mWebView.evaluateJavascript("try { if(window.playlist&&window.playlist.length){ playTrack(0); } } catch(e){}", null);
+                break;
+            case "play_album":
+                callPlayContainer(arg, "album");
+                break;
+            case "play_playlist":
+                callPlayContainer(arg, "playlist");
+                break;
+            case "play_artist":
+                callPlayArtist(arg);
+                break;
+            case "play_track":
+                callPlayTrack(arg);
+                break;
+            case "shuffle":
+                mWebView.evaluateJavascript("try { var w=" + ("1".equals(arg) ? "true" : "false")
+                        + "; if(typeof isShuffle!=='undefined' && (!!isShuffle)!==w){ toggleShuffle(); } } catch(e){}", null);
+                break;
+            case "play_shuffle":
+                mWebView.evaluateJavascript("try { wmPlayShuffle(); } catch(e){}", null);
+                break;
+            case "refresh_queue":
+                mWebView.evaluateJavascript("try { wmQueueFor(); } catch(e){}", null);
+                break;
+            case "play_queue":
+                if (arg != null) {
+                    // Reproduce desde la posición indicada en la cola actual.
+                    mWebView.evaluateJavascript("try { var i=Number(" + arg + ");" +
+                            " if(typeof playlist!=='undefined' && playlist.length && i>=0 && i<playlist.length){ playTrack(i); }" +
+                            " try { if(typeof wmQueueFor==='function'){ wmQueueFor(); } }catch(e2){}" +
+                            " } catch(e){}", null);
+                }
+                break;
+            case "repeat":
+                final int rep;
+                try {
+                    rep = arg == null ? 0 : Integer.parseInt(arg);
+                } catch (NumberFormatException ne) {
+                    return;
+                }
+                mWebView.evaluateJavascript("try { var t=" + rep
+                        + "; if(typeof repeatMode!=='undefined'){ var c=0; while(repeatMode!==t && c<3){ toggleRepeat(); c++; } } } catch(e){}", null);
+                break;
+            case "refresh":
+                mWebView.evaluateJavascript("try { window.wmLibraryPush(); } catch(e){}", null);
+                break;
+            case "reload":
+                reloadWithConfiguredUrl();
+                break;
+            case "select_library":
+                if (arg != null) {
+                    JSONArray la = new JSONArray();
+                    la.put(arg);
+                    mWebView.evaluateJavascript("try { wmSelectLibrary.apply(null," + la.toString() + "); } catch(e){}", null);
+                }
+                break;
+            case "refresh_tracks":
+                callRefreshTracks(arg);
+                break;
+            case "refresh_artist_albums":
+                callRefreshArtistAlbums(arg);
+                break;
+            case "play_search":
+                if (arg != null) {
+                    JSONArray qa = new JSONArray();
+                    qa.put(arg);
+                    mWebView.evaluateJavascript("try { wmPlaySearch.apply(null," + qa.toString() + "); } catch(e){}", null);
+                }
+                break;
+            case "search":
+                if (arg != null) {
+                    JSONArray qa2 = new JSONArray();
+                    qa2.put(arg);
+                    mWebView.evaluateJavascript("try { wmSearch.apply(null," + qa2.toString() + "); } catch(e){}", null);
+                }
+                break;
             default:
                 break;
         }
+    }
+
+    /** Lanza wmPlayContainer(contenedor, tipo) para reproducir un álbum/lista. */
+    private void callPlayContainer(String containerId, String kind) {
+        if (containerId == null || containerId.isEmpty()) return;
+        JSONArray args = new JSONArray();
+        args.put(containerId);
+        args.put(kind);
+        args.put("");
+        args.put("");
+        mWebView.evaluateJavascript("try { wmPlayContainer.apply(null," + args.toString() + "); } catch(e){}", null);
+    }
+
+    /** Lanza wmPlayContainer para una pista concreta: arg = "kind:contenedor:pista". */
+    private void callPlayTrack(String arg) {
+        if (arg == null) return;
+        // arg = "<kind>:<contenedor>:<pista>" (contenedor puede contener ':')
+        int last = arg.lastIndexOf(':');
+        String trackId = last >= 0 ? arg.substring(last + 1) : "";
+        String rest = last >= 0 ? arg.substring(0, last) : arg;
+        int fc = rest.indexOf(':');
+        String kind = fc > 0 ? rest.substring(0, fc) : "album";
+        String containerId = fc > 0 ? rest.substring(fc + 1) : rest;
+        JSONArray args = new JSONArray();
+        args.put(containerId);
+        args.put(kind);
+        args.put("");
+        args.put(trackId);
+        mWebView.evaluateJavascript("try { wmPlayContainer.apply(null," + args.toString() + "); } catch(e){}", null);
+    }
+
+    /** Lanza wmTracksFor(contenedor, tipo): arg = "album|id" o "playlist|id". */
+    private void callRefreshTracks(String arg) {
+        if (arg == null) return;
+        int bar = arg.indexOf('|');
+        if (bar <= 0) return;
+        String kind = arg.substring(0, bar);
+        String id = arg.substring(bar + 1);
+        JSONArray args = new JSONArray();
+        args.put(id);
+        args.put(kind);
+        mWebView.evaluateJavascript("try { wmTracksFor.apply(null," + args.toString() + "); } catch(e){}", null);
+    }
+
+    /** Lanza wmPlayArtist(artista, nombre): arg = "artifactId|artistName". */
+    private void callPlayArtist(String arg) {
+        if (arg == null) return;
+        int bar = arg.indexOf('|');
+        String artistId = bar >= 0 ? arg.substring(0, bar) : arg;
+        String name = bar >= 0 ? arg.substring(bar + 1) : "";
+        JSONArray args = new JSONArray();
+        args.put(artistId);
+        args.put(name);
+        mWebView.evaluateJavascript("try { wmPlayArtist.apply(null," + args.toString() + "); } catch(e){}", null);
+    }
+
+    /** Lanza wmArtistAlbums(artista, nombre): arg = "artifactId|artistName". */
+    private void callRefreshArtistAlbums(String arg) {
+        if (arg == null) return;
+        int bar = arg.indexOf('|');
+        String artistId = bar >= 0 ? arg.substring(0, bar) : arg;
+        String name = bar >= 0 ? arg.substring(bar + 1) : "";
+        JSONArray args = new JSONArray();
+        args.put(artistId);
+        args.put(name);
+        mWebView.evaluateJavascript("try { wmArtistAlbums.apply(null," + args.toString() + "); } catch(e){}", null);
     }
 
     /** Lanza el selector de carpeta (SAF) solicitado por la web. */
@@ -475,6 +1058,29 @@ public class MainActivity extends Activity {
         if (mWebView != null) {
             mWebView.onResume();
         }
+        handleVoiceQuery(getIntent());
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+    }
+
+    /**
+     * Si el intent llegó desde VoiceSearchActivity (búsqueda por voz del
+     * Asistente), reproduce la consulta. Ejecuta solamente una vez por intent.
+     */
+    private void handleVoiceQuery(Intent in) {
+        if (in == null || !in.hasExtra(EXTRA_VOICE_QUERY)) return;
+        String q = in.getStringExtra(EXTRA_VOICE_QUERY);
+        in.removeExtra(EXTRA_VOICE_QUERY);
+        android.util.Log.i("WALKMAN_AA", "handleVoiceQuery q=" + q);
+        if (q == null || q.trim().isEmpty()) {
+            executeCommand("play", null);
+            return;
+        }
+        executeCommand("play_search", q.trim());
     }
 
     @Override

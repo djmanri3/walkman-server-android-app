@@ -28,10 +28,10 @@ com.djmanri3.Walkman.app-lifecycle-livedata-2.6.2-26 /home/manri/.gradle/caches/
 com.djmanri3.Walkman.app-activity-1.8.0-27 /home/manri/.gradle/caches/8.9/transforms/eccef3641fb182ec772542cb1b4425db/transformed/activity-1.8.0/res
 com.djmanri3.Walkman.app-startup-runtime-1.1.1-28 /home/manri/.gradle/caches/8.9/transforms/fb24fd81fb948482846358d35ccc42a2/transformed/startup-runtime-1.1.1/res
 com.djmanri3.Walkman.app-constraintlayout-2.0.1-29 /home/manri/.gradle/caches/8.9/transforms/fec0ea586054538159faa6828c125b28/transformed/constraintlayout-2.0.1/res
-com.djmanri3.Walkman.app-pngs-30 /home/manri/github/app-android/app/build/generated/res/pngs/debug
-com.djmanri3.Walkman.app-resValues-31 /home/manri/github/app-android/app/build/generated/res/resValues/debug
-com.djmanri3.Walkman.app-packageDebugResources-32 /home/manri/github/app-android/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.djmanri3.Walkman.app-packageDebugResources-33 /home/manri/github/app-android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.djmanri3.Walkman.app-debug-34 /home/manri/github/app-android/app/build/intermediates/merged_res/debug/mergeDebugResources
-com.djmanri3.Walkman.app-debug-35 /home/manri/github/app-android/app/src/debug/res
-com.djmanri3.Walkman.app-main-36 /home/manri/github/app-android/app/src/main/res
+com.djmanri3.Walkman.app-pngs-30 /home/manri/github/walkman-server-android-app/app/build/generated/res/pngs/debug
+com.djmanri3.Walkman.app-resValues-31 /home/manri/github/walkman-server-android-app/app/build/generated/res/resValues/debug
+com.djmanri3.Walkman.app-packageDebugResources-32 /home/manri/github/walkman-server-android-app/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.djmanri3.Walkman.app-packageDebugResources-33 /home/manri/github/walkman-server-android-app/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.djmanri3.Walkman.app-debug-34 /home/manri/github/walkman-server-android-app/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.djmanri3.Walkman.app-debug-35 /home/manri/github/walkman-server-android-app/app/src/debug/res
+com.djmanri3.Walkman.app-main-36 /home/manri/github/walkman-server-android-app/app/src/main/res

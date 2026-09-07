@@ -4,48 +4,52 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.Looper;
+import android.support.v4.media.MediaBrowserCompat;
+import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
 import androidx.media.session.MediaButtonReceiver;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
  * Servicio multimedia encargado de la integración total con el sistema de
  * Android: MediaSession (widget), notificación MediaStyle, botones físicos y
- * bluetooth, y audio focus.
+ * bluetooth, Android Auto y audio focus.
  *
  * El audio real lo reproduce el elemento &lt;audio&gt; dentro del WebView;
  * este servicio se encarga de exponer ese estado al sistema operativo y de
  * traducir los comandos del sistema (play/pause/next/prev/seek...) en llamadas
  * al JavaScript de la web a través del {@link CommandListener}.
  */
-public class MediaService extends Service {
+public class MediaService extends MediaBrowserServiceCompat {
 
     private static final String TAG = "WalkmanMedia";
     public static final String CHANNEL_ID = "walkman_media";
@@ -57,6 +61,22 @@ public class MediaService extends Service {
     public static final String ACTION_NEXT = "com.djmanri3.Walkman.action.NEXT";
     public static final String ACTION_PREV = "com.djmanri3.Walkman.action.PREV";
     public static final String ACTION_TOGGLE = "com.djmanri3.Walkman.action.TOGGLE";
+
+    // IDs de categorías para Android Auto
+    private static final String MEDIA_ROOT_ID = "walkman_root";
+    private static final String MEDIA_ID_NOW_PLAYING = "walkman_now_playing";
+    private static final String MEDIA_ID_PLAY_ALL = "walkman_play_all";
+    private static final String MEDIA_ID_SHUFFLE = "walkman_shuffle";
+    private static final String MEDIA_ID_QUEUE = "walkman_queue";
+    private static final String MEDIA_ID_ALBUMS = "walkman_albums";
+    private static final String MEDIA_ID_PLAYLISTS = "walkman_playlists";
+    private static final String MEDIA_ID_ARTISTS = "walkman_artists";
+    private static final String MEDIA_ID_SERVERS = "walkman_servers";
+
+    // Modos shuffle/repeat actuales, para exponerlos en el PlaybackState y que
+    // Android Auto muestre sus propios botones correctamente.
+    private static volatile int sShuffleMode = PlaybackStateCompat.SHUFFLE_MODE_NONE;
+    private static volatile int sRepeatMode = PlaybackStateCompat.REPEAT_MODE_NONE;
 
     /** Referencia al servicio corriendo (null si no está en marcha). */
     private static MediaService sInstance;
@@ -190,7 +210,19 @@ public class MediaService extends Service {
             public void onStop() { stopPlayback(); }
 
             @Override
+            public void onPlayFromMediaId(String mediaId, Bundle extras) {
+                handlePlayFromMediaId(mediaId);
+            }
+
+            @Override
+            public void onPlayFromSearch(String query, Bundle extras) {
+                android.util.Log.i("WALKMAN_AA", "onPlayFromSearch query=" + query);
+                handlePlayFromSearch(query);
+            }
+
+            @Override
             public void onSetRepeatMode(int mode) {
+                sRepeatMode = mode;
                 int m = (mode == PlaybackStateCompat.REPEAT_MODE_ONE) ? 2
                         : (mode == PlaybackStateCompat.REPEAT_MODE_ALL) ? 1 : 0;
                 dispatch("repeat", String.valueOf(m));
@@ -198,6 +230,7 @@ public class MediaService extends Service {
 
             @Override
             public void onSetShuffleMode(int mode) {
+                sShuffleMode = mode;
                 dispatch("shuffle", (mode == PlaybackStateCompat.SHUFFLE_MODE_ALL) ? "1" : "0");
             }
         });
@@ -209,6 +242,10 @@ public class MediaService extends Service {
 
         setPlaybackState(PlaybackStateCompat.STATE_NONE, 0, 0);
         mSession.setActive(true);
+
+        // Registrar el token de la sesión con MediaBrowserServiceCompat para
+        // que Android Auto y otros clientes puedan conectarse.
+        setSessionToken(mSession.getSessionToken());
 
         // Botones físicos / bluetooth / teclado.
         PendingIntent buttonIntent = PendingIntent.getBroadcast(this, 0,
@@ -265,6 +302,240 @@ public class MediaService extends Service {
         MediaStateStore st = new MediaStateStore(this);
         dispatch(st.isPlaying() ? "pause" : "play", null);
     }
+
+    // ─── Android Auto / MediaBrowserService ───────────────────────────────
+
+    @Nullable
+    @Override
+    public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid,
+                                 @Nullable Bundle rootHints) {
+        Bundle extras = new Bundle();
+        extras.putInt(
+                "android.media.browse.content.style",
+                0x1 /* CONTENT_STYLE_LIST */);
+        extras.putInt(
+                "android.media.browse.content.style.browsable",
+                0x1 /* CONTENT_STYLE_LIST */);
+        extras.putInt(
+                "android.media.browse.content.style.playable",
+                0x1 /* CONTENT_STYLE_LIST */);
+        return new BrowserRoot(MEDIA_ROOT_ID, extras);
+    }
+
+    // ─── Menú "Cambiar biblioteca" (Android Auto) ───────────────────────
+
+    /** Lista las bibliotecas de música del servidor conectado. */
+    private List<MediaBrowserCompat.MediaItem> onLoadLibraries() {
+        List<MediaBrowserCompat.MediaItem> out = LibraryStore.libraries(this);
+        if (out.isEmpty()) {
+            // Todavía no han llegado las bibliotecas desde la web: pedimos el
+            // empujón; al llegar se disparará childrenChanged("walkman_servers").
+            dispatch("refresh", null);
+        }
+        return out;
+    }
+
+    /** Cambia la biblioteca activa del servidor y vuelve a empujar los datos. */
+    private void selectLibrary(String libId) {
+        if (libId == null || libId.isEmpty()) return;
+        dispatch("select_library", libId);
+    }
+
+    @Override
+    public void onLoadChildren(@NonNull String parentId,
+                               @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        List<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
+
+        if (MEDIA_ROOT_ID.equals(parentId)) {
+            items.add(mediaItem(MEDIA_ID_NOW_PLAYING, getString(R.string.aa_now_playing),
+                    getString(R.string.app_name), "", MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            items.add(mediaItem(MEDIA_ID_PLAY_ALL, getString(R.string.aa_play_all),
+                    getString(R.string.app_name), "", MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            items.add(mediaItem(MEDIA_ID_SHUFFLE, getString(R.string.aa_shuffle),
+                    getString(R.string.app_name), "", MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
+            items.add(mediaItem(MEDIA_ID_QUEUE, getString(R.string.aa_queue),
+                    "", "", MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+            items.add(mediaItem(MEDIA_ID_ALBUMS, getString(R.string.aa_albums),
+                    "", "", MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+            items.add(mediaItem(MEDIA_ID_PLAYLISTS, getString(R.string.aa_playlists),
+                    "", "", MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+            items.add(mediaItem(MEDIA_ID_ARTISTS, getString(R.string.aa_artists),
+                    "", "", MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+            items.add(mediaItem(MEDIA_ID_SERVERS, getString(R.string.aa_servers),
+                    getString(R.string.aa_servers_subtitle), "",
+                    MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
+
+            // Si aún no hay biblioteca cacheada, pedimos a la web que la envíe.
+            if (!LibraryStore.hasAlbums(this) && !LibraryStore.hasPlaylists(this)) {
+                dispatch("refresh", null);
+            }
+            if (!LibraryStore.hasArtists(this)) {
+                dispatch("refresh", null);
+            }
+        } else if (MEDIA_ID_ALBUMS.equals(parentId)) {
+            items = LibraryStore.albums(this);
+            if (items.isEmpty()) dispatch("refresh", null);
+        } else if (MEDIA_ID_PLAYLISTS.equals(parentId)) {
+            items = LibraryStore.playlists(this);
+            if (items.isEmpty()) dispatch("refresh", null);
+        } else if (MEDIA_ID_ARTISTS.equals(parentId)) {
+            items = LibraryStore.artists(this);
+            if (items.isEmpty()) dispatch("refresh", null);
+        } else if (MEDIA_ID_SERVERS.equals(parentId)) {
+            items = onLoadLibraries();
+        } else if (MEDIA_ID_QUEUE.equals(parentId)) {
+            items = LibraryStore.queue(this);
+            // Solo pedimos la cola a la web si aún no tenemos una en caché
+            // (p. ej. primer arranque). Al llegar, pushQueue dispara
+            // childrenChanged("walkman_queue") y AA vuelve a pedir los hijos;
+            // como ya habrá contenido, no se vuelve a pedir (evita un bucle
+            // de recargas que bloquea el scroll de la lista en Android Auto).
+            if (items.isEmpty()) dispatch("refresh_queue", null);
+        } else if (parentId.startsWith("library:")) {
+            selectLibrary(parentId.substring("library:".length()));
+        } else if (parentId.startsWith("artist:")) {
+            String id = parentId.substring("artist:".length());
+            items = LibraryStore.artistSongs(this, id);
+            if (items.isEmpty()) {
+                // Pedimos las canciones del artista; cuando lleguen se
+                // disparará childrenChanged("artist:<id>").
+                dispatch("refresh_artist_albums", id + "|" + LibraryStore.artistName(this, id));
+            }
+        } else if (parentId.startsWith("album:")) {
+            String id = parentId.substring("album:".length());
+            items = LibraryStore.tracks(this, id, "album");
+            if (items.isEmpty()) dispatch("refresh_tracks", "album|" + id);
+        } else if (parentId.startsWith("playlist:")) {
+            String id = parentId.substring("playlist:".length());
+            items = LibraryStore.tracks(this, id, "playlist");
+            if (items.isEmpty()) dispatch("refresh_tracks", "playlist|" + id);
+        }
+
+        result.sendResult(items);
+    }
+
+    /** Traduce el mediaId elegido en Android Auto a un comando para la web. */
+    private void handlePlayFromMediaId(String mediaId) {
+        if (mediaId == null) {
+            dispatch("play", null);
+            return;
+        }
+        if (mediaId.startsWith("queue:")) {
+            String idx = mediaId.substring("queue:".length());
+            if (!idx.isEmpty()) dispatch("play_queue", idx);
+        } else if (mediaId.startsWith("library:")) {
+            selectLibrary(mediaId.substring("library:".length()));
+        } else if (MEDIA_ID_NOW_PLAYING.equals(mediaId)) {
+            dispatch("play", null);
+        } else if (MEDIA_ID_PLAY_ALL.equals(mediaId)) {
+            dispatch("play_all", null);
+        } else if (MEDIA_ID_SHUFFLE.equals(mediaId)) {
+            // "Aleatorio" del menú: no activa shuffle sobre la cola actual
+            // (play podría pausar), sino que reproduce TODA la biblioteca en
+            // orden aleatorio, igual que el botón de la web.
+            dispatch("play_shuffle", null);
+        } else if (mediaId.startsWith("album:")) {
+            dispatch("play_album", mediaId.substring("album:".length()));
+        } else if (mediaId.startsWith("playlist:")) {
+            dispatch("play_playlist", mediaId.substring("playlist:".length()));
+        } else if (mediaId.startsWith("artist:")) {
+            String id = mediaId.substring("artist:".length());
+            dispatch("play_artist", id + "|" + LibraryStore.artistName(this, id));
+        } else if (mediaId.startsWith("track:")) {
+            // Formato: track:<kind>:<contenedor>:<pista>
+            String arg = mediaId.substring("track:".length());
+            dispatch("play_track", arg);
+        } else {
+            dispatch("play", null);
+        }
+    }
+
+    /**
+     * Búsqueda por voz (Google Asistente / Gemini). Resuelve el hilo actual
+     * contra la caché; si no hay nada para esta consulta, lanza una búsqueda
+     * por servidor para que la siguiente vez haya resultados.
+     */
+    @Override
+    public void onSearch(@NonNull String query, @Nullable Bundle extras,
+                         @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+        List<MediaBrowserCompat.MediaItem> items = LibraryStore.searchResults(this, query);
+        if (items.isEmpty()) {
+            items = LibraryStore.search(this, query);
+            if (query != null && !query.trim().isEmpty()) {
+                dispatch("search", query);
+            }
+        }
+        result.sendResult(items);
+    }
+
+    /** Inicia la reproducción de la mejor coincidencia por voz. */
+    private void handlePlayFromSearch(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            dispatch("play", null);
+            return;
+        }
+        // Vía rápida: coincidencia en la biblioteca ya cacheada.
+        LibraryStore.PlayTarget t = LibraryStore.resolveBest(this, query);
+        if (t != null) {
+            playTarget(t);
+            return;
+        }
+        // Vía servidor: la web busca y reproduce (wmPlaySearch).
+        dispatch("play_search", query);
+    }
+
+    private void playTarget(LibraryStore.PlayTarget t) {
+        switch (t.kind) {
+            case "album":
+                dispatch("play_album", t.id);
+                break;
+            case "playlist":
+                dispatch("play_playlist", t.id);
+                break;
+            case "artist":
+                dispatch("play_artist", t.id + "|" + t.name);
+                break;
+            default:
+                dispatch("play", null);
+                break;
+        }
+    }
+
+    private static MediaBrowserCompat.MediaItem mediaItem(String mediaId, String title,
+                                                          String subtitle, String iconUrl,
+                                                          int flags) {
+        MediaDescriptionCompat.Builder b = new MediaDescriptionCompat.Builder()
+                .setMediaId(mediaId)
+                .setTitle(title);
+        if (subtitle != null && !subtitle.isEmpty()) b.setSubtitle(subtitle);
+        if (iconUrl != null && !iconUrl.isEmpty()) {
+            try {
+                b.setIconUri(Uri.parse(iconUrl));
+            } catch (Exception ignored) {
+            }
+        }
+        return new MediaBrowserCompat.MediaItem(b.build(), flags);
+    }
+
+    /**
+     * Notifica a los clientes conectados (p. ej. Android Auto) que cambió el
+     * contenido de una categoría tras recibir datos nuevos de la web.
+     */
+    public static void childrenChanged(@Nullable final String parentId) {
+        MediaService svc = sInstance;
+        if (svc == null) return;
+        handler().post(() -> {
+            if (sInstance == null) return;
+            try {
+                if (parentId != null) {
+                    svc.notifyChildrenChanged(parentId);
+                }
+            } catch (Exception ignored) {
+            }
+        });
+    }
+
+    // ─── Fin Android Auto ─────────────────────────────────────────────────
 
     /**
      * Actualiza la MediaSession y la notificación con el estado notificado por
@@ -385,6 +656,7 @@ public class MediaService extends Service {
                 | PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS
                 | PlaybackStateCompat.ACTION_SEEK_TO
                 | PlaybackStateCompat.ACTION_STOP
+                | PlaybackStateCompat.ACTION_PLAY_FROM_SEARCH
                 | PlaybackStateCompat.ACTION_SET_REPEAT_MODE
                 | PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE;
 
@@ -395,6 +667,8 @@ public class MediaService extends Service {
             b.setBufferedPosition(durationMs);
         }
         mSession.setPlaybackState(b.build());
+        mSession.setShuffleMode(sShuffleMode);
+        mSession.setRepeatMode(sRepeatMode);
     }
 
     /** Publica o actualiza la notificación multimedia (debe llamarse en main). */
@@ -518,14 +792,6 @@ public class MediaService extends Service {
             Log.w(TAG, "No se pudo guardar la carátula en caché", e);
             return null;
         }
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        // La MediaSession se gestiona de forma local; no exponemos un
-        // MediaBrowserService, así que no enlazamos bindings externos.
-        return null;
     }
 
     @Override

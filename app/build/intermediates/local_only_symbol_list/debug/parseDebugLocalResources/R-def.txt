@@ -38,6 +38,15 @@ layout activity_accent_color
 layout activity_main
 layout walkman_widget
 mipmap ic_launcher
+string aa_albums
+string aa_artists
+string aa_now_playing
+string aa_play_all
+string aa_playlists
+string aa_queue
+string aa_servers
+string aa_servers_subtitle
+string aa_shuffle
 string app_name
 string default_artist
 string next
@@ -48,4 +57,6 @@ string play
 string prev
 style Theme.Walkman
 style Theme.Walkman.Dialog
+xml automotive_app_desc
+xml shortcuts
 xml walkman_widget_info

@@ -3791,6 +3791,15 @@ layout support_simple_spinner_dropdown_item
 layout walkman_widget
 mipmap ic_launcher
 plurals mtrl_badge_content_description
+string aa_albums
+string aa_artists
+string aa_now_playing
+string aa_play_all
+string aa_playlists
+string aa_queue
+string aa_servers
+string aa_servers_subtitle
+string aa_shuffle
 string abc_action_bar_home_description
 string abc_action_bar_up_description
 string abc_action_menu_overflow_description
@@ -5277,4 +5286,6 @@ styleable View android_theme android_focusable paddingEnd paddingStart theme
 styleable ViewBackgroundHelper android_background backgroundTint backgroundTintMode
 styleable ViewPager2 android_orientation
 styleable ViewStubCompat android_id android_layout android_inflatedId
+xml automotive_app_desc
+xml shortcuts
 xml walkman_widget_info

@@ -11,4 +11,15 @@
     <string name="pause">Pausar</string>
     <string name="prev">Anterior</string>
     <string name="next">Siguiente</string>
+
+    <!-- Android Auto: elementos de navegación -->
+    <string name="aa_now_playing">Ahora suena</string>
+    <string name="aa_play_all">Reproducir todo</string>
+    <string name="aa_shuffle">Aleatorio</string>
+    <string name="aa_queue">Cola de reproducción</string>
+    <string name="aa_albums">Álbumes</string>
+    <string name="aa_playlists">Listas</string>
+    <string name="aa_artists">Artistas</string>
+    <string name="aa_servers">Cambiar biblioteca</string>
+    <string name="aa_servers_subtitle">Bibliotecas del servidor</string>
 </resources>
