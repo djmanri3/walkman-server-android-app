@@ -4,11 +4,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -17,12 +22,19 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Actividad principal que muestra la web WALKMAN en un WebView e inyecta el
@@ -517,11 +529,113 @@ public class MainActivity extends Activity {
             })();
             """;
 
+    /**
+     * Script inyectado para que la web reserve la zona segura del sistema con
+     * las barras transparentes (la ventana ocupa toda la pantalla y la barra de
+     * gestos se dibuja sobre la propia página).
+     *
+     * La web usa env(safe-area-inset-*) en su &lt;body&gt; (laterales) y en sus
+     * vistas (superior e inferior), así que primero se activa
+     * viewport-fit=cover para que el WebView le pase esos valores. Después se
+     * compensa únicamente lo que la web no deja libre:
+     *
+     * - los lados que el WebView no expone por env(),
+     * - la barra de estado, cuando el contenido de la web empieza dentro de
+     *   ella (su cabecera la ignora en horizontal, donde pone padding: 0), y
+     * - el teclado, que la web no puede conocer.
+     *
+     * Los insets llegan en píxeles físicos y se pasan a CSS con la escala de la
+     * página, para que cuadren con lo que mide env().
+     */
+    private static final String SAFE_AREA_SCRIPT = """
+            (function(){
+              var ins = [%d, %d, %d, %d, %d];
+              var dpr = window.devicePixelRatio || 1;
+              var d = document.documentElement;
+              d.style.setProperty('--wm-inset-top', (ins[0] / dpr) + 'px');
+              d.style.setProperty('--wm-inset-left', (ins[1] / dpr) + 'px');
+              d.style.setProperty('--wm-inset-right', (ins[2] / dpr) + 'px');
+              d.style.setProperty('--wm-inset-bottom', (ins[3] / dpr) + 'px');
+              d.style.setProperty('--wm-ime-bottom', (ins[4] / dpr) + 'px');
+
+              var meta = document.querySelector('meta[name=viewport]');
+              if (meta && meta.content.indexOf('viewport-fit') === -1) {
+                meta.content += ',viewport-fit=cover';
+              }
+
+              // Zona segura que el WebView ya expone a la web con env().
+              var probe = document.createElement('div');
+              probe.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;'
+                + 'visibility:hidden;padding-top:env(safe-area-inset-top,0px);'
+                + 'padding-left:env(safe-area-inset-left,0px);'
+                + 'padding-right:env(safe-area-inset-right,0px);'
+                + 'padding-bottom:env(safe-area-inset-bottom,0px);';
+              d.appendChild(probe);
+              var cs = getComputedStyle(probe);
+              var nat = {
+                top: (parseFloat(cs.paddingTop) || 0) * dpr,
+                left: (parseFloat(cs.paddingLeft) || 0) * dpr,
+                right: (parseFloat(cs.paddingRight) || 0) * dpr,
+                bottom: (parseFloat(cs.paddingBottom) || 0) * dpr
+              };
+              d.removeChild(probe);
+
+              var css = '';
+
+              // Barra de estado: sólo se compensa lo que la web deja tapado.
+              if (ins[0] > 0) {
+                var safe = (nat.top > 0 ? nat.top : ins[0]) / dpr;
+                var shift = safe - topInsetReserved();
+                if (shift > 0) css += 'padding-top:' + shift + 'px;';
+              }
+              if (nat.left === 0 && ins[1] > 0) {
+                css += 'padding-left:' + (ins[1] / dpr) + 'px;';
+              }
+              if (nat.right === 0 && ins[2] > 0) {
+                css += 'padding-right:' + (ins[2] / dpr) + 'px;';
+              }
+              var bottom = nat.bottom === 0 ? ins[3] : 0;
+              if (ins[4] > 0) bottom = Math.max(bottom, ins[4]);
+              if (bottom > 0) css += 'padding-bottom:' + (bottom / dpr) + 'px;';
+
+              var s = document.getElementById('wm-safe-area-style');
+              if (!s) {
+                s = document.createElement('style');
+                s.id = 'wm-safe-area-style';
+                (d.head || d).appendChild(s);
+              }
+              s.textContent = css ? 'body{' + css + '}' : '';
+            })();
+
+            /* Píxeles CSS que la web ya deja libres arriba. Se leen del padding
+               superior de su cabecera: en vertical aplica
+               env(safe-area-inset-top) y en horizontal lo anula con padding: 0,
+               que es justo lo que hay que compensar. No se mira nunca el propio
+               &lt;body&gt; para no depender de lo que inyectó este script. */
+            function topInsetReserved() {
+              var el = document.querySelector('header');
+              if (!el) el = document.body ? document.body.firstElementChild : null;
+              if (!el || el === document.body) return 0;
+              return parseFloat(getComputedStyle(el).paddingTop) || 0;
+            }
+            """;
+
     private WebView mWebView;
     private Handler mHandler;
     private MiniHttpServer mHttpServer;
     private boolean mWebReady;
     private String[] mPendingCommand;
+
+    /**
+     * Insets del sistema en píxeles que se pasan a la web por si no puede leer
+     * los suyos con env(safe-area-inset-*): superior, izq., der., inferior y
+     * teclado (ver {@link #pushSafeAreaToPage()}).
+     */
+    private static final int INSET_TOP = 0, INSET_LEFT = 1, INSET_RIGHT = 2,
+            INSET_BOTTOM = 3, INSET_IME = 4;
+
+    private final int[] mInsets = new int[5];
+
 
     // Runner de polling para mantener sincronizados posición, estado y pista
     // del widget con el <audio> real del WebView, incluso cuando la web no
@@ -600,7 +714,9 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        makeSystemBarsTransparent();
         setContentView(R.layout.activity_main);
+        applySystemBarInsets();
 
         mHandler = new Handler(Looper.getMainLooper());
 
@@ -659,6 +775,92 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Deja la barra de navegación (o la de gestos) completamente transparente:
+     * la ventana ocupa toda la pantalla y el sistema no dibuja ni el color de
+     * la barra ni el velo translúcido de contraste que añade por defecto en
+     * Android 10+.
+     */
+    private void makeSystemBarsTransparent() {
+        Window w = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(w, false);
+        w.setStatusBarColor(Color.TRANSPARENT);
+        w.setNavigationBarColor(Color.TRANSPARENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            // Sin esto el sistema superpone un fondo gris semitransparente
+            // (contraste automático) aunque el color sea transparente.
+            w.setStatusBarContrastEnforced(false);
+            w.setNavigationBarContrastEnforced(false);
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            // Antes de Android 10 la barra con botones sólo se vuelve
+            // transparente con este flag (deprecated a partir de Q).
+            w.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }
+        // Iconos claros: el fondo de la app es oscuro.
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(w, w.getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
+    }
+
+    /**
+     * Mide la zona segura del sistema y se la pasa a la web, que es la que
+     * reserva el hueco con env(safe-area-inset-*). La ventana no aplica ningún
+     * padding para que ni la barra de estado ni la de gestos dejen una banda
+     * negra sobre el fondo de la página.
+     */
+    private void applySystemBarInsets() {
+        final View content = findViewById(android.R.id.content);
+        ViewCompat.setOnApplyWindowInsetsListener(content, (v, insets) -> {
+            Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars()
+                    | WindowInsetsCompat.Type.displayCutout());
+            mInsets[INSET_TOP] = bars.top;
+            mInsets[INSET_LEFT] = bars.left;
+            mInsets[INSET_RIGHT] = bars.right;
+            mInsets[INSET_BOTTOM] = bars.bottom;
+            // El teclado no forma parte de la zona segura: en Android 11+ la
+            // ventana ya no se reduce al abrirlo, así que lo aportamos nosotros
+            // (antes lo reduce el sistema y no hay que compensarlo dos veces).
+            mInsets[INSET_IME] = insets.isVisible(WindowInsetsCompat.Type.ime())
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                    ? insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+                    : 0;
+            applyStatusBarScrim(mInsets[INSET_TOP]);
+            pushSafeAreaToPage();
+            return insets;
+        });
+    }
+
+    /**
+     * Velo semitransparente sobre la franja de la barra de estado. Desde
+     * Android 15 el color de la barra del sistema ya no se aplica, así que el
+     * tinte se dibuja dentro de la app, por encima de la web y por debajo de
+     * los iconos. La barra de gestos se deja totalmente transparente.
+     */
+    private void applyStatusBarScrim(int topInset) {
+        View scrim = findViewById(R.id.status_bar_scrim);
+        if (scrim == null) return;
+        ViewGroup.LayoutParams lp = scrim.getLayoutParams();
+        int height = Math.max(topInset, 0);
+        if (lp.height != height) {
+            lp.height = height;
+            scrim.setLayoutParams(lp);
+        }
+        scrim.setVisibility(height > 0 ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Comunica a la web la zona segura para que su cabecera, sus vistas y su
+     * fondo respeten las barras del sistema, que ya son transparentes.
+     */
+    private void pushSafeAreaToPage() {
+        if (mWebView == null || !mWebReady) return;
+        mWebView.evaluateJavascript(String.format(Locale.US, SAFE_AREA_SCRIPT,
+                mInsets[INSET_TOP], mInsets[INSET_LEFT], mInsets[INSET_RIGHT],
+                mInsets[INSET_BOTTOM], mInsets[INSET_IME]), null);
+    }
+
     /** Pide permiso de notificaciones en Android 13+ (necesario para el widget). */
     private void requestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33) {
@@ -703,6 +905,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 injectBridgeHelpers();
                 mWebReady = true;
+                pushSafeAreaToPage();
                 if (mPendingCommand != null) {
                     String[] p = mPendingCommand;
                     mPendingCommand = null;

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.5.2" type="partial_results">
+    <map id="UnsafeIntentLaunch">
+            <map id="unprotected">
+                <entry
+                    name="com.djmanri3.Walkman.WalkmanWidgetProvider"
+                    boolean="true"/>
+                <entry
+                    name="com.djmanri3.Walkman.MainActivity"
+                    boolean="true"/>
+                <entry
+                    name="com.djmanri3.Walkman.MediaService"
+                    boolean="true"/>
+                <entry
+                    name="com.djmanri3.Walkman.AccentColorActivity"
+                    boolean="true"/>
+                <entry
+                    name="com.djmanri3.Walkman.VoiceSearchActivity"
+                    boolean="true"/>
+                <entry
+                    name="androidx.media.session.MediaButtonReceiver"
+                    boolean="true"/>
+            </map>
+    </map>
+    <map id="NotificationPermission">
+        <entry
+            name="source"
+            boolean="true"/>
+    </map>
+    <map id="UnusedResources">
+        <location id="R.drawable.swatch_auto"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/swatch_auto.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="10"
+            endColumn="9"
+            endOffset="327"/>
+        <location id="R.drawable.widget_progress"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/drawable/widget_progress.xml"
+            line="2"
+            column="1"
+            startOffset="39"
+            endLine="17"
+            endColumn="14"
+            endOffset="591"/>
+        <entry
+            name="model"
+            string="color[status_bar_scrim(U),white(U),black(U),walkman_bg(D),accent(U)],drawable[btn_rect_bg(U),ic_notification(U),ic_pause(U),ic_play(U),ic_skip_next(U),ic_skip_previous(U),swatch_auto(D),swatch_circle(U),widget_art_frame(U),widget_background(U),widget_play_button_bg(U),widget_progress(D),ic_walkman(U),ic_walkman_fg(U),walkman_logo(U)],id[opt_auto(U),preview(D),preview_swatch(U),color_picker(U),btn_use(U),webview(U),status_bar_scrim(U),widget_particles(U),widget_art(U),widget_title(U),widget_artist(U),widget_prev(U),widget_play(U),widget_next(U),widget_progress(U),widget_logo(U)],layout[activity_accent_color(U),activity_main(U),walkman_widget(U)],mipmap[ic_launcher(U)],string[app_name(U),prev(U),play(U),next(U),notification_channel(U),notification_channel_desc(U),default_artist(U),pause(U),aa_now_playing(U),aa_play_all(U),aa_shuffle(U),aa_queue(U),aa_albums(U),aa_playlists(U),aa_artists(U),aa_servers(U),aa_servers_subtitle(U)],style[Theme_Walkman(U),Theme_Walkman_Dialog(U)],xml[shortcuts(U),automotive_app_desc(U),walkman_widget_info(U)];24^e^5^c,25^0,26^e^d^28^1^f^29^a^2a^8^2b^9^13,27^2^12,39^2^4,3a^2^4,3d^26^11;;;"/>
+        <location id="R.color.walkman_bg"
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/values/colors.xml"
+            line="4"
+            column="12"
+            startOffset="104"
+            endLine="4"
+            endColumn="29"
+            endOffset="121"/>
+    </map>
+
+</incidents>

@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<incidents format="6" by="lint 8.5.2" type="conditional_incidents">
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="ffffffffc0000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/walkman_widget_info.xml"
+            line="6"
+            column="5"
+            startOffset="212"
+            endLine="6"
+            endColumn="33"
+            endOffset="240"/>
+        <map>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="ffffffffc0000000"/>
+            <entry
+                name="message"
+                string="Attribute `targetCellHeight` is only used in API level 31 and higher (current min is %1$s)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="UnusedAttribute"
+        severity="warning"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="ffffffffc0000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*resDir*0}/xml/walkman_widget_info.xml"
+            line="5"
+            column="5"
+            startOffset="180"
+            endLine="5"
+            endColumn="32"
+            endOffset="207"/>
+        <map>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="ffffffffc0000000"/>
+            <entry
+                name="message"
+                string="Attribute `targetCellWidth` is only used in API level 31 and higher (current min is %1$s)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="fffffffffe000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/djmanri3/Walkman/MediaService.java"
+            line="180"
+            column="39"
+            startOffset="7179"
+            endLine="180"
+            endColumn="62"
+            endOffset="7202"/>
+        <map>
+            <entry
+                name="owner"
+                string="android.app.NotificationChannel"/>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="fffffffffe000000"/>
+            <entry
+                name="name"
+                string="&lt;init>"/>
+            <entry
+                name="message"
+                string="Call requires API level 26 (current min is %1$s): `new android.app.NotificationChannel`"/>
+            <entry
+                name="desc"
+                string="(Ljava.lang.String;Ljava.lang.CharSequence;I)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="fffffffffe000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/djmanri3/Walkman/MediaService.java"
+            line="184"
+            column="17"
+            startOffset="7359"
+            endLine="184"
+            endColumn="31"
+            endOffset="7373"/>
+        <map>
+            <entry
+                name="owner"
+                string="android.app.NotificationChannel"/>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="fffffffffe000000"/>
+            <entry
+                name="name"
+                string="setDescription"/>
+            <entry
+                name="message"
+                string="Call requires API level 26 (current min is %1$s): `android.app.NotificationChannel#setDescription`"/>
+            <entry
+                name="desc"
+                string="(Ljava.lang.String;)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="fffffffffe000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/djmanri3/Walkman/MediaService.java"
+            line="185"
+            column="17"
+            startOffset="7438"
+            endLine="185"
+            endColumn="29"
+            endOffset="7450"/>
+        <map>
+            <entry
+                name="owner"
+                string="android.app.NotificationChannel"/>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="fffffffffe000000"/>
+            <entry
+                name="name"
+                string="setShowBadge"/>
+            <entry
+                name="message"
+                string="Call requires API level 26 (current min is %1$s): `android.app.NotificationChannel#setShowBadge`"/>
+            <entry
+                name="desc"
+                string="(Z)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NewApi"
+        severity="error"
+        message="">
+        <fix-data minSdk="ffffffffff800000" requiresApi="fffffffffe000000"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/djmanri3/Walkman/MediaService.java"
+            line="186"
+            column="30"
+            startOffset="7488"
+            endLine="186"
+            endColumn="55"
+            endOffset="7513"/>
+        <map>
+            <entry
+                name="owner"
+                string="android.app.NotificationManager"/>
+            <api-levels id="minSdk"
+                value="ffffffffff800000"/>
+            <api-levels id="requiresApi"
+                value="fffffffffe000000"/>
+            <entry
+                name="name"
+                string="createNotificationChannel"/>
+            <entry
+                name="message"
+                string="Call requires API level 26 (current min is %1$s): `android.app.NotificationManager#createNotificationChannel`"/>
+            <entry
+                name="desc"
+                string="(Landroid.app.NotificationChannel;)"/>
+        </map>
+    </incident>
+
+    <incident
+        id="NotificationPermission"
+        severity="error"
+        message="When targeting Android 13 or higher, posting a permission requires holding the `POST_NOTIFICATIONS` permission">
+        <fix-data missing="android.permission.POST_NOTIFICATIONS"/>
+        <location
+            file="${:app*debug*MAIN*sourceProvider*0*javaDir*0}/com/djmanri3/Walkman/MediaService.java"
+            line="685"
+            column="13"
+            startOffset="30478"
+            endLine="685"
+            endColumn="71"
+            endOffset="30536"/>
+    </incident>
+
+</incidents>

@@ -36,8 +36,8 @@
         "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/drawable/ic_skip_previous.xml"
     },
     {
-        "merged": "com.djmanri3.Walkman.app-debug-34:/xml_shortcuts.xml.flat",
-        "source": "com.djmanri3.Walkman.app-main-36:/xml/shortcuts.xml"
+        "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/xml_shortcuts.xml.flat",
+        "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/xml/shortcuts.xml"
     },
     {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/drawable_swatch_circle.xml.flat",
@@ -50,6 +50,10 @@
     {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/mipmap-mdpi_ic_launcher.png.flat",
         "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/mipmap-mdpi/ic_launcher.png"
+    },
+    {
+        "merged": "com.djmanri3.Walkman.app-debug-34:/layout_activity_main.xml.flat",
+        "source": "com.djmanri3.Walkman.app-main-36:/layout/activity_main.xml"
     },
     {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/drawable_ic_play.xml.flat",

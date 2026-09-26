@@ -2,6 +2,7 @@
 <resources>
     <color name="accent">#FFAA00FF</color>
     <color name="black">#FF000000</color>
+    <color name="status_bar_scrim">#99000000</color>
     <color name="walkman_bg">#FF3A0007</color>
     <color name="white">#FFFFFFFF</color>
     <string name="aa_albums">Álbumes</string>
@@ -23,8 +24,10 @@
     <string name="prev">Anterior</string>
     <style name="Theme.Walkman" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/black</item>
-        <item name="android:statusBarColor">@color/black</item>
-        <item name="android:navigationBarColor">@color/black</item>
+        
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:colorAccent">@color/accent</item>
     </style>
     <style name="Theme.Walkman.Dialog" parent="android:Theme.Material.NoActionBar">

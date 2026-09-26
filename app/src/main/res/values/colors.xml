@@ -4,4 +4,7 @@
     <color name="walkman_bg">#FF3A0007</color>
     <color name="accent">#FFAA00FF</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Velo de la barra de estado: deja ver la web pero atenúa lo que pasa
+         por debajo para que los iconos del sistema se lean siempre. -->
+    <color name="status_bar_scrim">#99000000</color>
 </resources>

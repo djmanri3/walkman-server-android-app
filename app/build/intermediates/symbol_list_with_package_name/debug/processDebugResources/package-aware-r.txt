@@ -2009,6 +2009,7 @@ color secondary_text_default_material_dark
 color secondary_text_default_material_light
 color secondary_text_disabled_material_dark
 color secondary_text_disabled_material_light
+color status_bar_scrim
 color switch_thumb_disabled_material_dark
 color switch_thumb_disabled_material_light
 color switch_thumb_material_dark
@@ -3495,6 +3496,7 @@ id startVertical
 id staticLayout
 id staticPostLayout
 id status_bar_latest_event_content
+id status_bar_scrim
 id stop
 id stretch
 id submenuarrow

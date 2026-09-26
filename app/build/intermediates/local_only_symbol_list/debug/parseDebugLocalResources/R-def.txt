@@ -2,6 +2,7 @@ R_DEF: Internal format may change without notice
 local
 color accent
 color black
+color status_bar_scrim
 color walkman_bg
 color white
 drawable btn_rect_bg
@@ -24,6 +25,7 @@ id color_picker
 id opt_auto
 id preview
 id preview_swatch
+id status_bar_scrim
 id webview
 id widget_art
 id widget_artist
