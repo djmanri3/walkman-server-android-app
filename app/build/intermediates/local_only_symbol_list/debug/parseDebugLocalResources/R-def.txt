@@ -22,6 +22,7 @@ drawable widget_play_button_bg
 drawable widget_progress
 id btn_use
 id color_picker
+id fullscreen_container
 id opt_auto
 id preview
 id preview_swatch

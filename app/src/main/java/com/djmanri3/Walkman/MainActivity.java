@@ -559,52 +559,81 @@ public class MainActivity extends Activity {
               d.style.setProperty('--wm-ime-bottom', (ins[4] / dpr) + 'px');
 
               var meta = document.querySelector('meta[name=viewport]');
+              var addedFit = false;
               if (meta && meta.content.indexOf('viewport-fit') === -1) {
                 meta.content += ',viewport-fit=cover';
+                addedFit = true;
+              }
+              if (addedFit) {
+                // env() sólo devuelve los insets cuando el viewport se ha
+                // recalculado con viewport-fit=cover. Si se mide en el acto la
+                // web parece no tener zona segura y la app compensaría de más,
+                // dejando bandas duplicadas: se mide tras el recálculo.
+                requestAnimationFrame(function() {
+                  requestAnimationFrame(applySafeArea);
+                });
+              } else {
+                applySafeArea();
               }
 
-              // Zona segura que el WebView ya expone a la web con env().
-              var probe = document.createElement('div');
-              probe.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;'
-                + 'visibility:hidden;padding-top:env(safe-area-inset-top,0px);'
-                + 'padding-left:env(safe-area-inset-left,0px);'
-                + 'padding-right:env(safe-area-inset-right,0px);'
-                + 'padding-bottom:env(safe-area-inset-bottom,0px);';
-              d.appendChild(probe);
-              var cs = getComputedStyle(probe);
-              var nat = {
-                top: (parseFloat(cs.paddingTop) || 0) * dpr,
-                left: (parseFloat(cs.paddingLeft) || 0) * dpr,
-                right: (parseFloat(cs.paddingRight) || 0) * dpr,
-                bottom: (parseFloat(cs.paddingBottom) || 0) * dpr
-              };
-              d.removeChild(probe);
+              function applySafeArea() {
+                var rules = '';
 
-              var css = '';
+                // Zona segura que el WebView ya expone a la web con env().
+                var probe = document.createElement('div');
+                probe.style.cssText = 'position:absolute;top:0;left:0;width:0;height:0;'
+                  + 'visibility:hidden;padding-top:env(safe-area-inset-top,0px);'
+                  + 'padding-left:env(safe-area-inset-left,0px);'
+                  + 'padding-right:env(safe-area-inset-right,0px);'
+                  + 'padding-bottom:env(safe-area-inset-bottom,0px);';
+                d.appendChild(probe);
+                var cs = getComputedStyle(probe);
+                var nat = {
+                  top: (parseFloat(cs.paddingTop) || 0) * dpr,
+                  left: (parseFloat(cs.paddingLeft) || 0) * dpr,
+                  right: (parseFloat(cs.paddingRight) || 0) * dpr,
+                  bottom: (parseFloat(cs.paddingBottom) || 0) * dpr
+                };
+                d.removeChild(probe);
 
-              // Barra de estado: sólo se compensa lo que la web deja tapado.
-              if (ins[0] > 0) {
-                var safe = (nat.top > 0 ? nat.top : ins[0]) / dpr;
-                var shift = safe - topInsetReserved();
-                if (shift > 0) css += 'padding-top:' + shift + 'px;';
-              }
-              if (nat.left === 0 && ins[1] > 0) {
-                css += 'padding-left:' + (ins[1] / dpr) + 'px;';
-              }
-              if (nat.right === 0 && ins[2] > 0) {
-                css += 'padding-right:' + (ins[2] / dpr) + 'px;';
-              }
-              var bottom = nat.bottom === 0 ? ins[3] : 0;
-              if (ins[4] > 0) bottom = Math.max(bottom, ins[4]);
-              if (bottom > 0) css += 'padding-bottom:' + (bottom / dpr) + 'px;';
+                var css = '';
 
-              var s = document.getElementById('wm-safe-area-style');
-              if (!s) {
-                s = document.createElement('style');
-                s.id = 'wm-safe-area-style';
-                (d.head || d).appendChild(s);
+                // Barra de estado: sólo se compensa lo que la web deja tapado.
+                if (ins[0] > 0) {
+                  var safe = (nat.top > 0 ? nat.top : ins[0]) / dpr;
+                  var shift = safe - topInsetReserved();
+                  if (shift > 0) css += 'padding-top:' + shift + 'px;';
+                }
+                if (nat.left === 0 && ins[1] > 0) {
+                  css += 'padding-left:' + (ins[1] / dpr) + 'px;';
+                }
+                if (nat.right === 0 && ins[2] > 0) {
+                  css += 'padding-right:' + (ins[2] / dpr) + 'px;';
+                }
+                var bottom = nat.bottom === 0 ? ins[3] : 0;
+                if (ins[4] > 0) bottom = Math.max(bottom, ins[4]);
+                if (bottom > 0) css += 'padding-bottom:' + (bottom / dpr) + 'px;';
+
+                // La cabecera de la web tiene altura fija (56px) y descuenta el
+                // margen superior seguro como padding. Si la barra de estado es
+                // más alta de lo que el diseño asume (pantallas plegables), al
+                // contenido le quedan menos px de los que necesita, se sale de su
+                // fondo y la cabecera se ve aplastada. Le damos la altura que le
+                // falta, pero sólo cuando de verdad no cabe.
+                var headMin = headerMinHeight();
+                if (headMin > 0) {
+                  rules += 'header{min-height:' + headMin + 'px !important;}';
+                }
+                if (css) rules += 'body{' + css + '}';
+
+                var s = document.getElementById('wm-safe-area-style');
+                if (!s) {
+                  s = document.createElement('style');
+                  s.id = 'wm-safe-area-style';
+                  (d.head || d).appendChild(s);
+                }
+                s.textContent = rules;
               }
-              s.textContent = css ? 'body{' + css + '}' : '';
             })();
 
             /* Píxeles CSS que la web ya deja libres arriba. Se leen del padding
@@ -617,6 +646,21 @@ public class MainActivity extends Activity {
               if (!el) el = document.body ? document.body.firstElementChild : null;
               if (!el || el === document.body) return 0;
               return parseFloat(getComputedStyle(el).paddingTop) || 0;
+            }
+
+            /* Altura mínima en píxeles CSS que necesita la cabecera para que su
+               contenido quepa bajo el margen superior seguro, o 0 si ya cabe. */
+            function headerMinHeight() {
+              var el = document.querySelector('header');
+              if (!el) return 0;
+              var pad = parseFloat(getComputedStyle(el).paddingTop) || 0;
+              var free = el.getBoundingClientRect().height - pad;
+              var need = 0;
+              for (var i = 0; i < el.children.length; i++) {
+                var h = el.children[i].getBoundingClientRect().height;
+                if (h > need) need = h;
+              }
+              return need > free + 0.5 ? pad + need : 0;
             }
             """;
 
@@ -635,6 +679,10 @@ public class MainActivity extends Activity {
             INSET_BOTTOM = 3, INSET_IME = 4;
 
     private final int[] mInsets = new int[5];
+
+    /** Vista a pantalla completa que está pidiendo la web, si la hay. */
+    private View mFullscreenView;
+    private WebChromeClient.CustomViewCallback mFullscreenCallback;
 
 
     // Runner de polling para mantener sincronizados posición, estado y pista
@@ -797,6 +845,15 @@ public class MainActivity extends Activity {
             // transparente con este flag (deprecated a partir de Q).
             w.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
+        // Desde Android 15, al ocultar las barras del sistema la ventana queda
+        // confinada al recorte de la cámara; hay que permitirle solaparse con él
+        // para que la pantalla completa sea de verdad a pantalla completa.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowManager.LayoutParams lp = w.getAttributes();
+            lp.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS;
+            w.setAttributes(lp);
+        }
         // Iconos claros: el fondo de la app es oscuro.
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(w, w.getDecorView());
@@ -920,6 +977,19 @@ public class MainActivity extends Activity {
             public void onPermissionRequest(PermissionRequest request) {
                 // Permitir permisos solicitados por la web sin marcos de diálogo.
                 runOnUiThread(() -> request.grant(request.getResources()));
+            }
+
+            @Override
+            public void onShowCustomView(View view, CustomViewCallback callback) {
+                // La web entra en pantalla completa con
+                // documentElement.requestFullscreen(); el WebView entrega aquí
+                // la vista a pantalla completa y la escondemos hasta que salga.
+                enterFullscreen(view, callback);
+            }
+
+            @Override
+            public void onHideCustomView() {
+                exitFullscreen();
             }
         });
 
@@ -1238,8 +1308,66 @@ public class MainActivity extends Activity {
         mWebView.loadUrl(ServerConfig.getUrl(this));
     }
 
+    /**
+     * Muestra la vista a pantalla completa que pide la web (opción "Pantalla
+     * completa" de Ajustes) sobre el WebView, y oculta las barras del sistema
+     * mientras dure.
+     */
+    private void enterFullscreen(View view, WebChromeClient.CustomViewCallback callback) {
+        if (mFullscreenView != null) {
+            callback.onCustomViewHidden();
+            return;
+        }
+        mFullscreenView = view;
+        mFullscreenCallback = callback;
+        ViewGroup container = findViewById(R.id.fullscreen_container);
+        container.removeAllViews();
+        container.addView(view, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        container.setVisibility(View.VISIBLE);
+        // La vista a pantalla completa ya dibuja la página: el WebView debajo
+        // se marcaría dos veces.
+        mWebView.setVisibility(View.INVISIBLE);
+        setSystemBarsVisible(false);
+    }
+
+    /** Devuelve la pantalla al WebView y restaura las barras transparentes. */
+    private void exitFullscreen() {
+        if (mFullscreenView == null) return;
+        ViewGroup container = findViewById(R.id.fullscreen_container);
+        container.removeAllViews();
+        container.setVisibility(View.GONE);
+        if (mWebView != null) mWebView.setVisibility(View.VISIBLE);
+        mFullscreenView = null;
+        if (mFullscreenCallback != null) {
+            mFullscreenCallback.onCustomViewHidden();
+            mFullscreenCallback = null;
+        }
+        setSystemBarsVisible(true);
+    }
+
+    /** Oculta o muestra las barras del sistema (pantalla completa). */
+    private void setSystemBarsVisible(boolean visible) {
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        if (visible) {
+            controller.show(WindowInsetsCompat.Type.systemBars());
+            makeSystemBarsTransparent();
+            ViewCompat.requestApplyInsets(getWindow().getDecorView());
+        } else {
+            controller.hide(WindowInsetsCompat.Type.systemBars());
+        }
+    }
+
     @Override
     public void onBackPressed() {
+        if (mFullscreenView != null) {
+            // El botón atrás sale de pantalla completa en vez de cerrar la app.
+            exitFullscreen();
+            return;
+        }
         if (mWebView != null && mWebView.canGoBack()) {
             mWebView.goBack();
         } else {

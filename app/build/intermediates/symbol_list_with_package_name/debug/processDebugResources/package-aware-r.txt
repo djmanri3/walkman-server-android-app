@@ -3282,6 +3282,7 @@ id flip
 id floating
 id forever
 id fragment_container_view_tag
+id fullscreen_container
 id fullscreen_header
 id ghost_view
 id ghost_view_holder

@@ -76,16 +76,16 @@
         "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/layout/activity_accent_color.xml"
     },
     {
+        "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/layout_activity_main.xml.flat",
+        "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/layout/activity_main.xml"
+    },
+    {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/drawable_widget_background.xml.flat",
         "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/drawable/widget_background.xml"
     },
     {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/drawable-nodpi_ic_walkman.png.flat",
         "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/drawable-nodpi/ic_walkman.png"
-    },
-    {
-        "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/layout_activity_main.xml.flat",
-        "source": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-main-36:/layout/activity_main.xml"
     },
     {
         "merged": "/home/manri/.gradle/daemon/8.9/com.djmanri3.Walkman.app-debug-34:/mipmap-xxxhdpi_ic_launcher.png.flat",
