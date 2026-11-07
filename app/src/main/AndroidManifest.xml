@@ -19,6 +19,12 @@
     <!-- Notificaciones -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <queries>
+        <package android:name="local.extracted.equalizer" />
+        <provider android:authorities="local.extracted.equalizer.sony.settings" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -64,6 +70,8 @@
             android:exported="true"
             android:theme="@style/Theme.Walkman.Dialog"
             android:excludeFromRecents="true" />
+
+        <meta-data android:name="local.extracted.equalizer.NATIVE_SONY" android:value="true" />
 
         <!-- Android Auto: permite que el sistema de infoentretenimiento conecte -->
         <meta-data

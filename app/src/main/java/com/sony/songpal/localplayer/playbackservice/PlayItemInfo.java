@@ -1,0 +1,1 @@
+package com.sony.songpal.localplayer.playbackservice; public class PlayItemInfo {}

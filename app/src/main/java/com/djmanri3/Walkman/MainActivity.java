@@ -744,6 +744,8 @@ public class MainActivity extends Activity {
     private WebView mWebView;
     private String mBackNavigationScript = "false";
     private String mPlaybackScript = "false";
+    private String mSonyAudioScript = "false";
+    private SonyAudioEngine mSonyAudio;
     private boolean mBackNavigationPending;
     private OnBackInvokedCallback mBackCallback;
     private Handler mHandler;
@@ -857,9 +859,15 @@ public class MainActivity extends Activity {
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
+        mSonyAudio = new SonyAudioEngine(getApplicationContext());
+        mSonyAudio.setListener(json -> {
+            if (mWebView == null || !mWebReady) return;
+            mWebView.evaluateJavascript("if(window.wmSonyAudioState)wmSonyAudioState(" + json + ");", null);
+        });
         setupWebView();
         mBackNavigationScript = loadScriptAsset("back-navigation.js");
         mPlaybackScript = loadScriptAsset("android-playback.js");
+        mSonyAudioScript = loadScriptAsset("sony-audio.js");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mBackCallback = this::navigateBackInWebApp;
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
@@ -1116,6 +1124,7 @@ public class MainActivity extends Activity {
 
         // Inyecta el puente AndroidBridge que la web ya espera.
         mWebView.addJavascriptInterface(new AndroidBridge(getApplicationContext()), "AndroidBridge");
+        mWebView.addJavascriptInterface(mSonyAudio, "SonyAudio");
 
         mWebView.loadUrl(ServerConfig.getUrl(this));
     }
@@ -1126,6 +1135,7 @@ public class MainActivity extends Activity {
      */
     private void injectBridgeHelpers() {
         if (mWebView == null) return;
+        mWebView.evaluateJavascript(mSonyAudioScript, null);
         mWebView.evaluateJavascript(mPlaybackScript, null);
         // Panel "Servidor Walkman" embebido en la sección de Ajustes de la web.
         try {
@@ -1554,6 +1564,10 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mBackCallback != null) {
             getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mBackCallback);
+        }
+        if (mSonyAudio != null) {
+            mSonyAudio.release();
+            mSonyAudio = null;
         }
         MediaService.setCommandListener(null);
         AndroidBridge.setLocalFolderListener(null);

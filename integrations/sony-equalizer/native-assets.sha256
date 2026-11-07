@@ -1,0 +1,7 @@
+75f616e4661fb691443e5a0fc949f652b7b44e177a5a14f398133e1f875fa96b  app/src/main/jniLibs/arm64-v8a/libspmedia.so
+0dd0ece3995e6901768f34a948cf3b7b843d4e5ef03ebbd00d8523d72396b734  app/src/main/jniLibs/arm64-v8a/libspusb.so
+d689762d63c9a2d342a2507287b11daecf0eff7ef2d196fce5868a24d17c5b26  app/src/main/jniLibs/arm64-v8a/libwmmediaplayer_songpal.so
+f09353b103f00e3ba0ba323ffd2943bd5c821ca815465fab4e7bceab8cc80d3b  app/src/main/jniLibs/armeabi-v7a/libspmedia.so
+ca9c5eb0533e1aa9c586013de49d99cad46e3b20aa755ecc170c1b90561cfdc3  app/src/main/jniLibs/armeabi-v7a/libspusb.so
+159b5e49658ccbc050f2ad7cd4aab8745046da6a4be5724519cfe2c40b9cec0b  app/src/main/jniLibs/armeabi-v7a/libwmmediaplayer_songpal.so
+1c9cebad949dc487fb49dd330b938d123bcb7536cfd01b46cd979f1ae6853cfc  app/src/main/assets/dsx_param_file.bin
