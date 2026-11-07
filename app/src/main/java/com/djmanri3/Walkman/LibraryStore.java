@@ -2,6 +2,7 @@ package com.djmanri3.Walkman;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.AtomicFile;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 
@@ -14,6 +15,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Caché en memoria (con persistencia en fichero) de la biblioteca que la web
@@ -41,6 +50,41 @@ public class LibraryStore {
 
     private static final Object LOCK = new Object();
     private static JSONObject sData = null;
+    private static final ScheduledExecutorService WRITER = Executors.newSingleThreadScheduledExecutor();
+    private static ScheduledFuture<?> sPendingWrite;
+
+    /** Una lectura coherente aunque el puente publique datos desde otro hilo. */
+    static <T> T readLocked(Supplier<T> reader) {
+        synchronized (LOCK) { return reader.get(); }
+    }
+
+    /** Distingue una categoría vacía de una que todavía no ha llegado. */
+    static boolean isLoaded(Context ctx, String parentId) {
+        synchronized (LOCK) {
+            JSONObject d = data(ctx);
+            switch (parentId) {
+                case "walkman_albums": return categoryLoaded(d, "albums");
+                case "walkman_playlists": return categoryLoaded(d, "playlists");
+                case "walkman_artists": return categoryLoaded(d, "artists");
+                case "walkman_servers": return categoryLoaded(d, "libraries");
+                case "walkman_queue": return categoryLoaded(d, "queue");
+                default:
+                    if (!parentId.startsWith("artist:") && !parentId.startsWith("album:")
+                            && !parentId.startsWith("playlist:")) return true;
+                    String prefix = parentId.startsWith("artist:") ? "artist:"
+                            : parentId.startsWith("album:") ? "album:" : "playlist:";
+                    JSONObject containers = d.optJSONObject(prefix.equals("artist:")
+                            ? "artist_songs" : "tracks");
+                    return containers != null && containers.has(parentId.substring(prefix.length()));
+            }
+        }
+    }
+
+    private static boolean categoryLoaded(JSONObject data, String key) {
+        JSONArray items = data.optJSONArray(key);
+        // Migrar cachés antiguas vacías: pudieron publicarse antes de conectar.
+        return items != null && (items.length() > 0 || data.optBoolean(key + "_ready", false));
+    }
 
     private static JSONObject data(Context ctx) {
         synchronized (LOCK) {
@@ -68,6 +112,7 @@ public class LibraryStore {
         synchronized (LOCK) {
             try {
                 data(ctx).put("albums", albums == null ? new JSONArray() : albums);
+                data(ctx).put("albums_ready", true);
             } catch (Exception e) {
                 android.util.Log.w(TAG, "setAlbums", e);
             }
@@ -79,6 +124,7 @@ public class LibraryStore {
         synchronized (LOCK) {
             try {
                 data(ctx).put("playlists", playlists == null ? new JSONArray() : playlists);
+                data(ctx).put("playlists_ready", true);
             } catch (Exception e) {
                 android.util.Log.w(TAG, "setPlaylists", e);
             }
@@ -91,6 +137,7 @@ public class LibraryStore {
         synchronized (LOCK) {
             try {
                 data(ctx).put("libraries", libraries == null ? new JSONArray() : libraries);
+                data(ctx).put("libraries_ready", true);
             } catch (Exception e) {
                 android.util.Log.w(TAG, "setLibraries", e);
             }
@@ -111,14 +158,16 @@ public class LibraryStore {
                 JSONArray prev = d.optJSONArray("queue");
                 JSONArray next = queue == null ? new JSONArray() : queue;
                 boolean changed = !sameJson(prev, next);
-                d.put("queue", next);
-                d.put("queue_time", System.currentTimeMillis());
+                if (changed) {
+                    d.put("queue", next);
+                    d.put("queue_ready", true);
+                    d.put("queue_time", System.currentTimeMillis());
+                    persist(ctx);
+                }
                 return changed;
             } catch (Exception e) {
                 android.util.Log.w(TAG, "setQueue", e);
                 return false;
-            } finally {
-                persist(ctx);
             }
         }
     }
@@ -169,6 +218,7 @@ public class LibraryStore {
     private static List<JSONObject> sortedCapped(JSONArray arr) {
         List<JSONObject> out = new ArrayList<>();
         if (arr == null) return out;
+        Map<JSONObject, String> names = new IdentityHashMap<>();
         for (int i = 0; i < arr.length(); i++) {
             JSONObject o = arr.optJSONObject(i);
             if (o == null) continue;
@@ -176,21 +226,28 @@ public class LibraryStore {
             String name = o.optString("name", "");
             if (id.isEmpty() || name.isEmpty()) continue;
             out.add(o);
+            names.put(o, normalize(name));
         }
-        out.sort((a, b) -> normalize(a.optString("name", ""))
-                .compareTo(normalize(b.optString("name", ""))));
+        out.sort((a, b) -> names.get(a).compareTo(names.get(b)));
         if (out.size() > MAX_BROWSE_ITEMS) {
             return new ArrayList<>(out.subList(0, MAX_BROWSE_ITEMS));
         }
         return out;
     }
 
+    private static boolean hasEntries(Context ctx, String key) {
+        synchronized (LOCK) {
+            JSONArray entries = data(ctx).optJSONArray(key);
+            return entries != null && entries.length() > 0;
+        }
+    }
+
     public static boolean hasAlbums(Context ctx) {
-        return albums(ctx).size() > 0;
+        return hasEntries(ctx, "albums");
     }
 
     public static boolean hasPlaylists(Context ctx) {
-        return playlists(ctx).size() > 0;
+        return hasEntries(ctx, "playlists");
     }
 
     public static boolean hasTracks(Context ctx, String containerId) {
@@ -374,6 +431,7 @@ public class LibraryStore {
         synchronized (LOCK) {
             try {
                 data(ctx).put("artists", artists == null ? new JSONArray() : artists);
+                data(ctx).put("artists_ready", true);
             } catch (Exception e) {
                 android.util.Log.w(TAG, "setArtists", e);
             }
@@ -422,7 +480,7 @@ public class LibraryStore {
     }
 
     public static boolean hasArtists(Context ctx) {
-        return artists(ctx).size() > 0;
+        return hasEntries(ctx, "artists");
     }
 
     /** Nombre de un artista a partir de su id crudo. */
@@ -766,23 +824,34 @@ public class LibraryStore {
 
     // ─── Persistencia ─────────────────────────────────────────────────────
 
+    // Agrupar cambios consecutivos sin bloquear el puente con serialización y E/S.
+    // Todas las llamadas a persist se hacen con LOCK adquirido.
     private static void persist(Context ctx) {
-        try {
-            File dir = ctx.getFilesDir();
-            File out = new File(dir, FILE_NAME);
-            try (FileOutputStream fos = new FileOutputStream(out)) {
-                fos.write(sData.toString().getBytes("UTF-8"));
-                fos.flush();
+        if (sPendingWrite != null && !sPendingWrite.isDone()) return;
+        File dir = ctx.getFilesDir();
+        sPendingWrite = WRITER.schedule(() -> {
+            String snapshot;
+            synchronized (LOCK) {
+                snapshot = sData.toString();
+                sPendingWrite = null;
             }
-        } catch (IOException e) {
-            android.util.Log.w(TAG, "No se pudo persistir la biblioteca", e);
-        }
+            AtomicFile file = new AtomicFile(new File(dir, FILE_NAME));
+            FileOutputStream out = null;
+            try {
+                out = file.startWrite();
+                out.write(snapshot.getBytes(StandardCharsets.UTF_8));
+                file.finishWrite(out);
+            } catch (IOException e) {
+                if (out != null) file.failWrite(out);
+                android.util.Log.w(TAG, "No se pudo persistir la biblioteca", e);
+            }
+        }, 300, TimeUnit.MILLISECONDS);
     }
 
     private static JSONObject readFile(File dir) {
         File in = new File(dir, FILE_NAME);
-        if (!in.exists()) return null;
-        try (FileInputStream fis = new FileInputStream(in)) {
+        if (!in.exists() && !new File(dir, FILE_NAME + ".bak").exists()) return null;
+        try (FileInputStream fis = new AtomicFile(in).openRead()) {
             byte[] buf = new byte[(int) in.length()];
             int read = 0;
             while (read < buf.length) {

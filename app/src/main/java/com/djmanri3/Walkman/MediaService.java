@@ -37,6 +37,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -94,6 +97,15 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     // Serializa descargas y escrituras de carátulas. Las tareas obsoletas
     // salen antes de abrir una conexión, sin crear hilos por cada cambio.
+    private static final ExecutorService BROWSE_EXECUTOR = Executors.newSingleThreadExecutor();
+    private final Map<String, PendingBrowse> mPendingBrowses = new LinkedHashMap<>();
+    private final Map<String, Long> mRefreshTimes = new LinkedHashMap<>();
+
+    private static class PendingBrowse {
+        final List<Result<List<MediaBrowserCompat.MediaItem>>> results = new ArrayList<>();
+        Runnable timeout;
+    }
+
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static volatile Handler sHandler = null;
 
@@ -322,17 +334,6 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     // ─── Menú "Cambiar biblioteca" (Android Auto) ───────────────────────
 
-    /** Lista las bibliotecas de música del servidor conectado. */
-    private List<MediaBrowserCompat.MediaItem> onLoadLibraries() {
-        List<MediaBrowserCompat.MediaItem> out = LibraryStore.libraries(this);
-        if (out.isEmpty()) {
-            // Todavía no han llegado las bibliotecas desde la web: pedimos el
-            // empujón; al llegar se disparará childrenChanged("walkman_servers").
-            dispatch("refresh", null);
-        }
-        return out;
-    }
-
     /** Cambia la biblioteca activa del servidor y vuelve a empujar los datos. */
     private void selectLibrary(String libId) {
         if (libId == null || libId.isEmpty()) return;
@@ -342,8 +343,80 @@ public class MediaService extends MediaBrowserServiceCompat {
     @Override
     public void onLoadChildren(@NonNull String parentId,
                                @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        List<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
+        if (parentId.startsWith("library:")) {
+            selectLibrary(parentId.substring("library:".length()));
+            result.sendResult(Collections.emptyList());
+            return;
+        }
+        result.detach();
+        PendingBrowse pending = mPendingBrowses.get(parentId);
+        if (pending != null) {
+            pending.results.add(result);
+            return;
+        }
+        pending = new PendingBrowse();
+        pending.results.add(result);
+        mPendingBrowses.put(parentId, pending);
+        PendingBrowse request = pending;
+        pending.timeout = () -> finishBrowse(parentId, request, Collections.emptyList());
+        handler().postDelayed(pending.timeout, 12_000L);
+        readBrowse(parentId, pending);
+    }
 
+    private void readBrowse(String parentId, PendingBrowse pending) {
+        BROWSE_EXECUTOR.execute(() -> {
+            try {
+                LibraryStore.readLocked(() -> {
+                    List<MediaBrowserCompat.MediaItem> items = loadBrowseItems(parentId);
+                    boolean loaded = MEDIA_ROOT_ID.equals(parentId) || LibraryStore.isLoaded(this, parentId);
+                    handler().post(() -> {
+                        if (sInstance != this || mPendingBrowses.get(parentId) != pending) return;
+                        if (loaded || !items.isEmpty()) finishBrowse(parentId, pending, items);
+                        // Conservar el indicador de carga hasta que el puente responda.
+                        if (!loaded || MEDIA_ROOT_ID.equals(parentId)) requestBrowseRefresh(parentId);
+                    });
+                    return null;
+                });
+            } catch (Exception e) {
+                Log.w(TAG, "No se pudo cargar " + parentId, e);
+                handler().post(() -> finishBrowse(parentId, pending, Collections.emptyList()));
+            }
+        });
+    }
+
+    private void finishBrowse(String parentId, PendingBrowse pending,
+                              List<MediaBrowserCompat.MediaItem> items) {
+        if (mPendingBrowses.get(parentId) != pending) return;
+        mPendingBrowses.remove(parentId);
+        handler().removeCallbacks(pending.timeout);
+        for (Result<List<MediaBrowserCompat.MediaItem>> result : pending.results) result.sendResult(items);
+    }
+
+    private void requestBrowseRefresh(String parentId) {
+        String command = "refresh", arg = null;
+        if (parentId.startsWith("album:")) {
+            command = "refresh_tracks"; arg = "album|" + parentId.substring(6);
+        } else if (parentId.startsWith("playlist:")) {
+            command = "refresh_tracks"; arg = "playlist|" + parentId.substring(9);
+        } else if (parentId.startsWith("artist:")) {
+            String id = parentId.substring(7);
+            command = "refresh_artist_albums";
+            arg = id + "|" + LibraryStore.artistName(this, id);
+        } else if (MEDIA_ID_QUEUE.equals(parentId)) {
+            command = "refresh_queue";
+        }
+        String key = command + "|" + arg;
+        long now = SystemClock.elapsedRealtime();
+        Long last = mRefreshTimes.get(key);
+        if (last != null && now - last < 5000L) return;
+        if (mRefreshTimes.size() >= 128) mRefreshTimes.clear();
+        mRefreshTimes.put(key, now);
+        dispatch(command, arg);
+    }
+
+    /** Construye las listas fuera del hilo principal, con una lectura coherente. */
+    private List<MediaBrowserCompat.MediaItem> loadBrowseItems(String parentId) {
+        List<MediaBrowserCompat.MediaItem> items = new ArrayList<>();
         if (MEDIA_ROOT_ID.equals(parentId)) {
             items.add(mediaItem(MEDIA_ID_NOW_PLAYING, getString(R.string.aa_now_playing),
                     getString(R.string.app_name), "", MediaBrowserCompat.MediaItem.FLAG_PLAYABLE));
@@ -363,53 +436,24 @@ public class MediaService extends MediaBrowserServiceCompat {
                     getString(R.string.aa_servers_subtitle), "",
                     MediaBrowserCompat.MediaItem.FLAG_BROWSABLE));
 
-            // Si aún no hay biblioteca cacheada, pedimos a la web que la envíe.
-            if (!LibraryStore.hasAlbums(this) && !LibraryStore.hasPlaylists(this)) {
-                dispatch("refresh", null);
-            }
-            if (!LibraryStore.hasArtists(this)) {
-                dispatch("refresh", null);
-            }
         } else if (MEDIA_ID_ALBUMS.equals(parentId)) {
             items = LibraryStore.albums(this);
-            if (items.isEmpty()) dispatch("refresh", null);
         } else if (MEDIA_ID_PLAYLISTS.equals(parentId)) {
             items = LibraryStore.playlists(this);
-            if (items.isEmpty()) dispatch("refresh", null);
         } else if (MEDIA_ID_ARTISTS.equals(parentId)) {
             items = LibraryStore.artists(this);
-            if (items.isEmpty()) dispatch("refresh", null);
         } else if (MEDIA_ID_SERVERS.equals(parentId)) {
-            items = onLoadLibraries();
+            items = LibraryStore.libraries(this);
         } else if (MEDIA_ID_QUEUE.equals(parentId)) {
             items = LibraryStore.queue(this);
-            // Solo pedimos la cola a la web si aún no tenemos una en caché
-            // (p. ej. primer arranque). Al llegar, pushQueue dispara
-            // childrenChanged("walkman_queue") y AA vuelve a pedir los hijos;
-            // como ya habrá contenido, no se vuelve a pedir (evita un bucle
-            // de recargas que bloquea el scroll de la lista en Android Auto).
-            if (items.isEmpty()) dispatch("refresh_queue", null);
-        } else if (parentId.startsWith("library:")) {
-            selectLibrary(parentId.substring("library:".length()));
         } else if (parentId.startsWith("artist:")) {
-            String id = parentId.substring("artist:".length());
-            items = LibraryStore.artistSongs(this, id);
-            if (items.isEmpty()) {
-                // Pedimos las canciones del artista; cuando lleguen se
-                // disparará childrenChanged("artist:<id>").
-                dispatch("refresh_artist_albums", id + "|" + LibraryStore.artistName(this, id));
-            }
+            items = LibraryStore.artistSongs(this, parentId.substring(7));
         } else if (parentId.startsWith("album:")) {
-            String id = parentId.substring("album:".length());
-            items = LibraryStore.tracks(this, id, "album");
-            if (items.isEmpty()) dispatch("refresh_tracks", "album|" + id);
+            items = LibraryStore.tracks(this, parentId.substring(6), "album");
         } else if (parentId.startsWith("playlist:")) {
-            String id = parentId.substring("playlist:".length());
-            items = LibraryStore.tracks(this, id, "playlist");
-            if (items.isEmpty()) dispatch("refresh_tracks", "playlist|" + id);
+            items = LibraryStore.tracks(this, parentId.substring(9), "playlist");
         }
-
-        result.sendResult(items);
+        return items;
     }
 
     /** Traduce el mediaId elegido en Android Auto a un comando para la web. */
@@ -456,14 +500,26 @@ public class MediaService extends MediaBrowserServiceCompat {
     @Override
     public void onSearch(@NonNull String query, @Nullable Bundle extras,
                          @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        List<MediaBrowserCompat.MediaItem> items = LibraryStore.searchResults(this, query);
-        if (items.isEmpty()) {
-            items = LibraryStore.search(this, query);
-            if (query != null && !query.trim().isEmpty()) {
-                dispatch("search", query);
+        result.detach();
+        BROWSE_EXECUTOR.execute(() -> {
+            List<MediaBrowserCompat.MediaItem> loaded;
+            try {
+                loaded = LibraryStore.readLocked(() -> {
+                    List<MediaBrowserCompat.MediaItem> found = LibraryStore.searchResults(this, query);
+                    return found.isEmpty() ? LibraryStore.search(this, query) : found;
+                });
+            } catch (Exception e) {
+                Log.w(TAG, "No se pudo buscar en la biblioteca", e);
+                loaded = Collections.emptyList();
             }
-        }
-        result.sendResult(items);
+            List<MediaBrowserCompat.MediaItem> items = loaded;
+            handler().post(() -> {
+                if (sInstance == this && items.isEmpty() && query != null && !query.trim().isEmpty()) {
+                    dispatch("search", query);
+                }
+                result.sendResult(items);
+            });
+        });
     }
 
     /** Inicia la reproducción de la mejor coincidencia por voz. */
@@ -472,14 +528,14 @@ public class MediaService extends MediaBrowserServiceCompat {
             dispatch("play", null);
             return;
         }
-        // Vía rápida: coincidencia en la biblioteca ya cacheada.
-        LibraryStore.PlayTarget t = LibraryStore.resolveBest(this, query);
-        if (t != null) {
-            playTarget(t);
-            return;
-        }
-        // Vía servidor: la web busca y reproduce (wmPlaySearch).
-        dispatch("play_search", query);
+        BROWSE_EXECUTOR.execute(() -> {
+            LibraryStore.PlayTarget target = LibraryStore.readLocked(() -> LibraryStore.resolveBest(this, query));
+            handler().post(() -> {
+                if (sInstance != this) return;
+                if (target != null) playTarget(target);
+                else dispatch("play_search", query);
+            });
+        });
     }
 
     private void playTarget(LibraryStore.PlayTarget t) {
@@ -523,9 +579,11 @@ public class MediaService extends MediaBrowserServiceCompat {
         MediaService svc = sInstance;
         if (svc == null) return;
         handler().post(() -> {
-            if (sInstance == null) return;
+            if (sInstance != svc) return;
             try {
                 if (parentId != null) {
+                    PendingBrowse pending = svc.mPendingBrowses.get(parentId);
+                    if (pending != null) svc.readBrowse(parentId, pending);
                     svc.notifyChildrenChanged(parentId);
                 }
             } catch (Exception ignored) {
@@ -831,6 +889,9 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     @Override
     public void onDestroy() {
+        for (String parent : new ArrayList<>(mPendingBrowses.keySet())) {
+            finishBrowse(parent, mPendingBrowses.get(parent), Collections.emptyList());
+        }
         sInstance = null;
         ++sArtGeneration;
         sAppliedArtUrl = null;

@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 
 /**
@@ -82,12 +84,22 @@ public class MainActivity extends Activity {
               }
               return u;
             }
+            var lastLibraryParts=Object.create(null);
+            function libraryScope(){
+              try{ return JSON.stringify([embyConfig.serverType,embyConfig.host,embyConfig.token,embyConfig.libraryId]); }
+              catch(e){ return 'local'; }
+            }
+            function sendLibraryPart(method,items){
+              if(!window.AndroidBridge)return;
+              var json=JSON.stringify(items), key=libraryScope()+'|'+method;
+              if(lastLibraryParts[key]===json)return;
+              AndroidBridge[method](json);
+              lastLibraryParts[key]=json;
+            }
             function pushLibraryParts(A,P,R){
-              if(window.AndroidBridge){
-                try{ AndroidBridge.pushAlbums(JSON.stringify(A)); }catch(e){}
-                try{ AndroidBridge.pushPlaylists(JSON.stringify(P)); }catch(e){}
-                try{ AndroidBridge.pushArtists(JSON.stringify(R)); }catch(e){}
-              }
+              try{ sendLibraryPart('pushAlbums',A); }catch(e){}
+              try{ sendLibraryPart('pushPlaylists',P); }catch(e){}
+              try{ sendLibraryPart('pushArtists',R); }catch(e){}
             }
             function wmAALibraries(){
               // Bibliotecas de música del servidor conectado (Emby/Jellyfin/Plex).
@@ -111,7 +123,7 @@ public class MainActivity extends Activity {
             }
             function pushLibrariesPart(){
               if(!window.AndroidBridge)return;
-              try{ AndroidBridge.pushLibraries(JSON.stringify(wmAALibraries())); }catch(e){}
+              try{ sendLibraryPart('pushLibraries',wmAALibraries()); }catch(e){}
             }
             function pushLocal(){
               var A=[],P=[],R=[];
@@ -132,44 +144,102 @@ public class MainActivity extends Activity {
               pushLibraryParts(A,P,R);
               return true;
             }
+            var libraryJobs=Object.create(null), libraryLoadedAt=Object.create(null);
+            var coverJobs=Object.create(null), coverIds=Object.create(null);
+            var albumSnapshots=Object.create(null);
+            function albumPart(albums){
+              return albums.map(function(it){
+                var cachedCover=coverIds[libraryScope()+'|'+it.Id];
+                if(cachedCover)it.AlbumId=cachedCover;
+                return {id:it.Id,name:it.Name||'',artist:it.AlbumArtist||((it.Artists&&it.Artists[0])||''),imageUrl:aaImg(it)};
+              });
+            }
+            function enrichAACovers(albums,scope,st){
+              // No descargar toda la biblioteca de canciones para poder listar
+              // álbumes. Resolver sólo carátulas ausentes con hasta 4 peticiones.
+              albumSnapshots[scope]=albums;
+              if(coverJobs[scope])return;
+              var type=embyConfig.serverType;
+              if(type!=='emby'&&type!=='jellyfin')return;
+              var next=0, changed=false;
+              var candidates=albums.slice(0,500).filter(function(it){
+                return (!it.AlbumId||it.AlbumId===it.Id) && !(it.ImageTags&&it.ImageTags.Primary);
+              });
+              function worker(){
+                if(scope!==libraryScope()||next>=candidates.length)return Promise.resolve();
+                var album=candidates[next++], key=scope+'|'+album.Id;
+                if(coverIds[key]){
+                  album.AlbumId=coverIds[key]; changed=true; return worker();
+                }
+                return Promise.resolve().then(function(){return fetchItems(st.Audio,album.Id,'MusicAlbum');})
+                .then(function(r){
+                  var first=(r&&r.Items||[]).find(function(t){return !!t.Id;});
+                  if(first){ coverIds[key]=first.Id; album.AlbumId=first.Id; changed=true; }
+                }).catch(function(){}).then(worker);
+              }
+              coverJobs[scope]=Promise.all([worker(),worker(),worker(),worker()]).then(function(){
+                delete coverJobs[scope];
+                if(changed&&scope===libraryScope()){
+                  var latest=albumSnapshots[scope]||albums;
+                  latest.forEach(function(it){var id=coverIds[scope+'|'+it.Id];if(id)it.AlbumId=id;});
+                  sendLibraryPart('pushAlbums',albumPart(latest));
+                }
+              });
+            }
             function pushStreaming(){
-              var st=getSt(); if(!st) return false;
-              var qA=fetchItems(st.Album).then(function(r){return r;}).catch(function(){return null;});
-              var qP=fetchItems(st.Playlist).then(function(r){return r;}).catch(function(){return null;});
-              var qR=(typeof st.Artist==='undefined'||st.Artist===null)
-                ?Promise.resolve(null)
-                :fetchItems(st.Artist).then(function(r){return r;}).catch(function(){return null;});
-              return Promise.all([qA,qP,qR]).then(function(rs){
-                // Corrige el AlbumId de cada álbum: muchos álbumes Emby/Jellyfin
-                // reportan imagen en su Id pero 404 al pedirla; la portada real
-                // está en su primera canción. resolveAlbumCoverIds asigna a
-                // item.AlbumId el Id de la primera pista (que sí trae Primary),
-                // de modo que getImageUrl(item) devuelva una URL que responde.
-                var A=[],P=[],R=[];
-                var albums=rs[0]?rs[0].Items||[]:[];
-                if(typeof resolveAlbumCoverIds==='function'){
-                  try{ return resolveAlbumCoverIds(albums).then(function(){
-                    return buildParts(albums); }); }catch(e){}
-                }
-                return buildParts(albums);
-                function buildParts(albums){
-                  A=albums.map(function(it){
-                    return {id:it.Id,name:it.Name||'',artist:it.AlbumArtist||((it.Artists&&it.Artists[0])||''),imageUrl:aaImg(it)};
-                  });
-                  if(rs[1]&&rs[1].Items){
-                    rs[1].Items.forEach(function(it){ P.push({id:it.Id,name:it.Name||'',imageUrl:aaImg(it)}); });
-                  }
-                  if(rs[2]&&rs[2].Items){
-                    rs[2].Items.forEach(function(it){ R.push({id:it.Id,name:it.Name||'',imageUrl:aaImg(it)}); });
-                  }
-                  pushLibraryParts(A,P,R);
+              var st=getSt(); if(!st)return Promise.resolve(false);
+              var scope=libraryScope();
+              function part(name,type,method,map){
+                if(type==null){sendLibraryPart(method,[]);return Promise.resolve(true);}
+                var key=scope+'|'+name;
+                if(libraryJobs[key])return libraryJobs[key];
+                if(libraryLoadedAt[key]&&Date.now()-libraryLoadedAt[key]<30000)return Promise.resolve(true);
+                var job=Promise.resolve().then(function(){return fetchItems(type);}).then(function(r){
+                  if(scope!==libraryScope()||!r||!Array.isArray(r.Items))return false;
+                  var items=r.Items.map(function(it){return Object.assign({},it);});
+                  sendLibraryPart(method,map(items));
+                  libraryLoadedAt[key]=Date.now();
+                  if(name==='albums')enrichAACovers(items,scope,st);
                   return true;
-                }
-              }).catch(function(){ return false; });
+                }).catch(function(){return false;});
+                libraryJobs[key]=job;
+                job.then(function(){if(libraryJobs[key]===job)delete libraryJobs[key];});
+                return job;
+              }
+              // Cada categoría se publica en cuanto llega, sin esperar a las demás.
+              return Promise.all([
+                part('albums',st.Album,'pushAlbums',albumPart),
+                part('playlists',st.Playlist,'pushPlaylists',function(items){return items.map(function(it){return {id:it.Id,name:it.Name||'',imageUrl:aaImg(it)};});}),
+                part('artists',st.Artist,'pushArtists',function(items){return items.map(function(it){return {id:it.Id,name:it.Name||'',imageUrl:aaImg(it)};});})
+              ]).then(function(ok){return ok.every(Boolean);});
+            }
+            var restoringConnection=null;
+            function libraryReady(){
+              try{
+                if(embyConfig.serverType==='local')return Array.isArray(localTracks)&&localTracks.length>0;
+                return !!embyConfig.host&&!!embyConfig.token&&!!embyConfig.libraryId;
+              }catch(e){return false;}
+            }
+            function publishReadyLibrary(){
+              pushLibrariesPart();
+              return isStreaming()?pushStreaming():pushLocal();
             }
             window.wmLibraryPush=function(){
-              pushLibrariesPart();
-              try{ return isStreaming()?pushStreaming():pushLocal(); }catch(e){ return false; }
+              try{
+                // El WebView puede terminar de cargar antes de que la web
+                // restaure su sesión. No convertir ese arranque en datos vacíos.
+                if(libraryReady())return publishReadyLibrary();
+                if(restoringConnection)return restoringConnection;
+                if(typeof restoreServerConfig!=='function'||document.readyState!=='complete')return false;
+                var saved=JSON.parse(localStorage.getItem('walkman_server_config')||'null');
+                if(!saved||!saved.host||!saved.token||!saved.libraryId)return false;
+                restoringConnection=Promise.resolve().then(function(){return restoreServerConfig();})
+                .then(function(){return libraryReady()?publishReadyLibrary():false;})
+                .catch(function(){return false;});
+                var job=restoringConnection;
+                job.then(function(){if(restoringConnection===job)restoringConnection=null;});
+                return job;
+              }catch(e){ return false; }
             };
             window.wmSelectLibrary=function(libId){
               var id=String(libId||'');
@@ -673,12 +743,14 @@ public class MainActivity extends Activity {
 
     private WebView mWebView;
     private String mBackNavigationScript = "false";
+    private String mPlaybackScript = "false";
     private boolean mBackNavigationPending;
     private OnBackInvokedCallback mBackCallback;
     private Handler mHandler;
     private MiniHttpServer mHttpServer;
     private boolean mWebReady;
     private String[] mPendingCommand;
+    private final Map<String, String[]> mPendingBrowseCommands = new LinkedHashMap<>();
 
     /**
      * Insets del sistema en píxeles que se pasan a la web por si no puede leer
@@ -786,15 +858,8 @@ public class MainActivity extends Activity {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         setupWebView();
-        try (InputStream script = getAssets().open("back-navigation.js")) {
-            ByteArrayOutputStream contents = new ByteArrayOutputStream();
-            byte[] buffer = new byte[4096];
-            int count;
-            while ((count = script.read(buffer)) != -1) contents.write(buffer, 0, count);
-            mBackNavigationScript = new String(contents.toByteArray(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            android.util.Log.w("Walkman", "No se pudo cargar la navegación Atrás", e);
-        }
+        mBackNavigationScript = loadScriptAsset("back-navigation.js");
+        mPlaybackScript = loadScriptAsset("android-playback.js");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mBackCallback = this::navigateBackInWebApp;
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
@@ -835,6 +900,19 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> executeCommand(command, argument));
             }
         });
+    }
+
+    private String loadScriptAsset(String name) {
+        try (InputStream script = getAssets().open(name)) {
+            ByteArrayOutputStream contents = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = script.read(buffer)) != -1) contents.write(buffer, 0, count);
+            return new String(contents.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            android.util.Log.w("Walkman", "No se pudo cargar el script " + name, e);
+            return "false";
+        }
     }
 
     @Override
@@ -1001,6 +1079,9 @@ public class MainActivity extends Activity {
                 injectBridgeHelpers();
                 mWebReady = true;
                 pushSafeAreaToPage();
+                List<String[]> browseCommands = new ArrayList<>(mPendingBrowseCommands.values());
+                mPendingBrowseCommands.clear();
+                for (String[] pending : browseCommands) executeCommand(pending[0], pending[1]);
                 if (mPendingCommand != null) {
                     String[] p = mPendingCommand;
                     mPendingCommand = null;
@@ -1045,6 +1126,7 @@ public class MainActivity extends Activity {
      */
     private void injectBridgeHelpers() {
         if (mWebView == null) return;
+        mWebView.evaluateJavascript(mPlaybackScript, null);
         // Panel "Servidor Walkman" embebido en la sección de Ajustes de la web.
         try {
             mWebView.evaluateJavascript(SERVER_EMBED_SCRIPT, null);
@@ -1071,13 +1153,20 @@ public class MainActivity extends Activity {
         if (!mWebReady) {
             // La web aún no ha terminado de cargar (p. ej. voz en arranque en
             // frío): retenemos la última orden y la ejecutamos en onPageFinished.
-            mPendingCommand = new String[]{command, arg};
+            if (command.startsWith("refresh")) {
+                if (mPendingBrowseCommands.size() >= 32) mPendingBrowseCommands.clear();
+                mPendingBrowseCommands.put(command + "|" + arg, new String[]{command, arg});
+            } else {
+                mPendingCommand = new String[]{command, arg};
+            }
             return;
         }
         switch (command) {
             case "play":
+                mWebView.evaluateJavascript("try { wmAndroidTransport('play'); } catch(e){ console.error('Walkman play:', e.message); }", null);
+                break;
             case "pause":
-                mWebView.evaluateJavascript("try { togglePlay(); } catch(e){}", null);
+                mWebView.evaluateJavascript("try { wmAndroidTransport('pause'); } catch(e){ console.error('Walkman pause:', e.message); }", null);
                 break;
             case "next":
                 mWebView.evaluateJavascript("try { nextTrack(); } catch(e){}", null);
@@ -1103,7 +1192,7 @@ public class MainActivity extends Activity {
                 mWebView.evaluateJavascript("try { var d=document.getElementById('audio-player'); if(d){d.pause(); d.currentTime=0;} } catch(e){}", null);
                 break;
             case "play_all":
-                mWebView.evaluateJavascript("try { if(window.playlist&&window.playlist.length){ playTrack(0); } } catch(e){}", null);
+                mWebView.evaluateJavascript("try { if(typeof playlist!=='undefined'&&playlist.length){ playTrack(0); } } catch(e){}", null);
                 break;
             case "play_album":
                 callPlayContainer(arg, "album");

@@ -41,3 +41,41 @@ node tools/tests/back-navigation.test.js
 Comprueba en un navegador real el regreso desde el reproductor, los botones de
 volver de la biblioteca, el cierre de paneles y submenús, y el regreso desde el menú principal de My Music a Playing. No instala ni abre la app del dispositivo. El gesto nativo y
 la interacción con el teclado deben comprobarse también en Android.
+
+## Carga de Android Auto
+
+Pruebas del puente JavaScript con servidores lentos, peticiones repetidas,
+listas vacías, errores, cambios de biblioteca y restauración tardía de la conexión:
+
+```bash
+node tools/tests/android-auto-loading.test.js
+```
+
+Para probar los resultados asíncronos del servicio y la persistencia en un
+dispositivo Android conectado, sin instalar la app, compilar primero el APK y
+usar JDK 17, `adb` y `ANDROID_HOME` configurados:
+
+```bash
+bash tools/tests/run-android-auto-smoke-test.sh \
+  app/build/outputs/apk/debug/app-debug.apk \
+  app/build/intermediates/compile_app_classes_jar/debug/bundleDebugClassesToCompileJar/classes.jar \
+  /ruta/a/la/cache/gradle/media-1.7.0-api.jar
+```
+
+El tercer argumento es el JAR de AndroidX Media generado en la caché de Gradle.
+La prueba verifica migración de cachés vacías antiguas, peticiones compartidas, categorías vacías, una biblioteca de
+5.000 álbumes, el límite de navegación de 500 elementos, persistencia completa,
+espera limitada y respuestas tardías. Debe imprimir `PASS`; tarda unos 14 s.
+La prueba no sustituye una comprobación en la pantalla real de Android Auto.
+
+## Reproducción desde Android Auto
+
+```bash
+node tools/tests/android-playback.test.js
+```
+
+Requiere Google Chrome. Reproduce el fallo del elemento `track-title-text`
+ausente tras restaurar la cola, verifica su reparación antes de cambiar de
+canción y comprueba que Reproducir y Pausar sean órdenes idempotentes. También
+comprueba el inicio de una cola restaurada sin `audio.src`, la reanudación y
+las colas vacías. La reproducción real se verifica adicionalmente en Android.
