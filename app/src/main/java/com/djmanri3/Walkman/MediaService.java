@@ -8,12 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
+import java.util.Objects;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
@@ -79,7 +80,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     private static volatile int sRepeatMode = PlaybackStateCompat.REPEAT_MODE_NONE;
 
     /** Referencia al servicio corriendo (null si no está en marcha). */
-    private static MediaService sInstance;
+    private static volatile MediaService sInstance;
 
     /** Escuchador de comandos que envía las órdenes del sistema a la web. */
     public interface CommandListener {
@@ -91,14 +92,17 @@ public class MediaService extends MediaBrowserServiceCompat {
     private MediaSessionCompat mSession;
     private NotificationManager mNotificationManager;
 
-    // Ejecutor para descargas pesadas (p. ej. la carátula) sin bloquear la UI
-    // ni el hilo del puente JavaScript.
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    // Serializa descargas y escrituras de carátulas. Las tareas obsoletas
+    // salen antes de abrir una conexión, sin crear hilos por cada cambio.
+    private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static volatile Handler sHandler = null;
 
     // Incrementa en cada actualización de pista para descartar carátulas
     // obsoletas cuando varias descargas quedan en vuelo (race condition).
     private static volatile long sArtGeneration = 0;
+    private String mRequestedArtUrl = "";
+    private boolean mArtworkPending;
+    private long mArtworkRetryAfter;
 
     // Última URL de carátula realmente aplicada a la sesión.
     private static volatile String sAppliedArtUrl = null;
@@ -145,17 +149,10 @@ public class MediaService extends MediaBrowserServiceCompat {
         if (context == null) {
             return;
         }
-        MediaStateStore st = new MediaStateStore(context);
-        st.setTitle(title);
-        st.setArtist(artist);
-        st.setArtworkUrl(artworkUrl);
-        st.setArtworkPath(artworkPath);
-        st.setPlaying(playing);
-        st.setPosition(positionMs);
-        st.setDuration(durationMs);
-
-        long now = System.currentTimeMillis();
-        if (force || now - sLastWidgetBroadcast > 1000L) {
+        long now = SystemClock.elapsedRealtime();
+        if (force || now - sLastWidgetBroadcast >= 1000L) {
+            new MediaStateStore(context).setPlayback(title, artist, artworkUrl,
+                    artworkPath, playing, positionMs, durationMs);
             sLastWidgetBroadcast = now;
             Intent update = new Intent(WalkmanWidgetProvider.ACTION_UPDATE)
                     .setPackage(context.getPackageName());
@@ -177,6 +174,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     }
 
     private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 getString(R.string.notification_channel),
@@ -545,72 +543,96 @@ public class MediaService extends MediaBrowserServiceCompat {
                                    String album, String artworkUrl, boolean playing,
                                    long positionMs, long durationMs) {
         if (svc == null) return;
-
-        MediaMetadataCompat.Builder meta = new MediaMetadataCompat.Builder()
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
-                .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
-                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
-                .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
-
-        // Token para descartar carátulas obsoletas si varias descargas
-        // asíncronas quedan en vuelo al pasar de canción rápidamente.
-        final long generation = ++sArtGeneration;
-
-        // Publicamos la metadata de inmediato (sin carátula). Esto también
-        // elimina la carátula de la pista anterior si la hubiera.
-        svc.mSession.setMetadata(meta.build());
-        svc.setPlaybackState(playing ? PlaybackStateCompat.STATE_PLAYING
-                        : (durationMs > 0 ? PlaybackStateCompat.STATE_PAUSED
-                                          : PlaybackStateCompat.STATE_NONE),
-                positionMs, durationMs);
-        svc.postNotification(playing);
-
-        // Notificamos al widget de inmediato con el estado actual.
-        persistAndNotify(svc, title, artist, artworkUrl,
-                sAppliedArtPath, playing, positionMs, durationMs, true);
-
-        // La carátula se descarga en segundo plano y, al terminar, se
-        // actualiza la metadata y la notificación con el bitmap.
-        if (artworkUrl != null && !artworkUrl.isEmpty()
-                && !artworkUrl.startsWith("data:") && !artworkUrl.startsWith("blob:")) {
-            final String url = artworkUrl;
-            final String fTitle = title, fArtist = artist, fAlbum = album;
-            final boolean fPlaying = playing;
-            final long fPos = positionMs, fDur = durationMs;
-            EXECUTOR.execute(() -> {
-                if (svc.mSession == null) return;
-                Bitmap art = svc.downloadArtwork(url);
-                // Si ya cambió de pista mientras descargábamos, descartamos.
-                if (art == null || generation != sArtGeneration) {
+        // El puente JS usa su propio hilo: toda la sesión se modifica en main.
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            handler().post(() -> updateMedia(svc, title, artist, album, artworkUrl,
+                    playing, positionMs, durationMs));
+            return;
+        }
+        if (svc != sInstance || svc.mSession == null) return;
+        String url = artworkUrl == null ? "" : artworkUrl;
+        boolean artChanged = !url.equals(svc.mRequestedArtUrl);
+        MediaMetadataCompat previous = svc.mSession.getController().getMetadata();
+        if (!artChanged && previous != null
+                && Objects.equals(title, previous.getString(MediaMetadataCompat.METADATA_KEY_TITLE))
+                && Objects.equals(artist, previous.getString(MediaMetadataCompat.METADATA_KEY_ARTIST))
+                && Objects.equals(album, previous.getString(MediaMetadataCompat.METADATA_KEY_ALBUM))
+                && durationMs == previous.getLong(MediaMetadataCompat.METADATA_KEY_DURATION)) {
+            updatePlayback(svc, playing, positionMs, durationMs);
+        } else {
+            MediaMetadataCompat.Builder meta = new MediaMetadataCompat.Builder()
+                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, artist)
+                    .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, album)
+                    .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, durationMs);
+            if (!artChanged && previous != null) {
+                meta.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART,
+                        previous.getBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART));
+            }
+            if (artChanged) {
+                ++sArtGeneration;
+                svc.mRequestedArtUrl = url;
+                svc.mArtworkPending = false;
+                svc.mArtworkRetryAfter = 0;
+                sAppliedArtPath = null;
+                setAppliedArtUrl("");
+            }
+            svc.mSession.setMetadata(meta.build());
+            svc.setPlaybackState(playing ? PlaybackStateCompat.STATE_PLAYING
+                    : (durationMs > 0 ? PlaybackStateCompat.STATE_PAUSED
+                                      : PlaybackStateCompat.STATE_NONE), positionMs, durationMs);
+            svc.postNotification(playing);
+            persistAndNotify(svc, title, artist, url, sAppliedArtPath,
+                    playing, positionMs, durationMs, true);
+        }
+        if (url.isEmpty() || url.startsWith("data:") || url.startsWith("blob:")) {
+            setAppliedArtUrl(url);
+            return;
+        }
+        if (svc.mArtworkPending || url.equals(sAppliedArtUrl)
+                || SystemClock.elapsedRealtime() < svc.mArtworkRetryAfter) return;
+        svc.mArtworkPending = true;
+        final long generation = sArtGeneration;
+        EXECUTOR.execute(() -> {
+            if (svc != sInstance || generation != sArtGeneration) return;
+            Bitmap art = svc.downloadArtwork(url);
+            if (svc != sInstance || generation != sArtGeneration) return;
+            String path = art == null ? null : svc.saveArtworkToCache(art, generation);
+            int accent = art == null ? AlbumArtColor.FALLBACK : AlbumArtColor.dominantColor(art);
+            handler().post(() -> {
+                if (svc != sInstance || generation != sArtGeneration) {
+                    if (path != null) EXECUTOR.execute(() -> new File(path).delete());
                     return;
                 }
-                String path = svc.saveArtworkToCache(art);
+                svc.mArtworkPending = false;
+                if (art == null) {
+                    svc.mArtworkRetryAfter = SystemClock.elapsedRealtime() + 30_000L;
+                    return;
+                }
+                setAppliedArtUrl(url);
                 sAppliedArtPath = path;
-                int accent = AlbumArtColor.dominantColor(art);
                 new MediaStateStore(svc).setAccentColor(accent);
-                MediaMetadataCompat.Builder withArt = new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, fTitle)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, fArtist)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, fAlbum)
-                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, fDur)
-                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art);
-                handler().post(() -> {
-                    if (svc.mSession == null || generation != sArtGeneration) return;
-                    setAppliedArtUrl(url);
-                    svc.mSession.setMetadata(withArt.build());
-                    svc.setPlaybackState(fPlaying ? PlaybackStateCompat.STATE_PLAYING
-                            : (fDur > 0 ? PlaybackStateCompat.STATE_PAUSED
-                                        : PlaybackStateCompat.STATE_NONE), fPos, fDur);
-                    svc.postNotification(fPlaying);
-                    persistAndNotify(svc, fTitle, fArtist, url, path,
-                            fPlaying, fPos, fDur, true);
-                });
+                // Conservamos título, pausa y posición recibidos durante la descarga.
+                MediaMetadataCompat current = svc.mSession.getController().getMetadata();
+                svc.mSession.setMetadata(new MediaMetadataCompat.Builder(current)
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art).build());
+                PlaybackStateCompat state = svc.mSession.getController().getPlaybackState();
+                boolean nowPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+                svc.postNotification(nowPlaying);
+                persistAndNotify(svc,
+                        current.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
+                        current.getString(MediaMetadataCompat.METADATA_KEY_ARTIST), url, path,
+                        nowPlaying, state == null ? 0 : state.getPosition(),
+                        current.getLong(MediaMetadataCompat.METADATA_KEY_DURATION), true);
             });
-        } else {
-            // Sin carátula descargable: asumimos la URL tal cual (placeholder)
-            // para que el poll detecte la coincidencia y no re-sincronice.
-            setAppliedArtUrl(artworkUrl != null ? artworkUrl : "");
-        }
+        });
+    }
+
+    /** No reiniciar descargas en curso; reintentar fallos con una pausa. */
+    public boolean needsArtworkUpdate(String url) {
+        return !url.equals(mRequestedArtUrl) || (!mArtworkPending
+                && !url.equals(sAppliedArtUrl)
+                && SystemClock.elapsedRealtime() >= mArtworkRetryAfter);
     }
 
     /** Actualiza estado y posición (para el seek bar del widget) sin recargar
@@ -622,7 +644,10 @@ public class MediaService extends MediaBrowserServiceCompat {
                 : (durationMs > 0 || svc.mSession.getController().getMetadata() != null
                         ? PlaybackStateCompat.STATE_PAUSED
                         : PlaybackStateCompat.STATE_NONE);
+        PlaybackStateCompat previousState = svc.mSession.getController().getPlaybackState();
+        boolean stateChanged = previousState == null || previousState.getState() != state;
         svc.setPlaybackState(state, positionMs, durationMs);
+        if (stateChanged) svc.postNotification(playing);
         // Actualizamos el widget (el throttling interno evita broadcasts a cada
         // poll). Lo hacemos siempre que haya una pista cargada.
         MediaMetadataCompat meta = svc.mSession.getController().getMetadata();
@@ -630,9 +655,9 @@ public class MediaService extends MediaBrowserServiceCompat {
             persistAndNotify(svc,
                     meta.getString(MediaMetadataCompat.METADATA_KEY_TITLE),
                     meta.getString(MediaMetadataCompat.METADATA_KEY_ARTIST),
-                    appliedArtUrl(), sAppliedArtPath,
+                    svc.mRequestedArtUrl, sAppliedArtPath,
                     playing, positionMs, durationMs,
-                    false);
+                    stateChanged);
         }
     }
 
@@ -745,44 +770,54 @@ public class MediaService extends MediaBrowserServiceCompat {
     }
 
     /** Descarga la carátula desde una URL remota (se llama en segundo plano). */
-    private Bitmap downloadArtwork(String url) {        try {
-            URL u = new URL(url);
-            HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+    private Bitmap downloadArtwork(String url) {
+        HttpURLConnection conn = null;
+        File download = null;
+        try {
+            conn = (HttpURLConnection) new URL(url).openConnection();
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
             conn.setInstanceFollowRedirects(true);
             conn.setRequestProperty("User-Agent", "WalkmanAndroid/1.0");
             conn.setRequestProperty("Accept", "image/*");
             int code = conn.getResponseCode();
-            if (code < 200 || code >= 300) {
-                Log.w(TAG, "Carátula respuesta HTTP " + code + " para " + url);
-                return null;
-            }
-            try (InputStream is = conn.getInputStream()) {
-                Bitmap bmp = BitmapFactory.decodeStream(is);
-                if (bmp != null && bmp.getWidth() > 512) {
-                    int nh = (int) (bmp.getHeight() * (512.0 / bmp.getWidth()));
-                    return Bitmap.createScaledBitmap(bmp, 512, nh, true);
+            if (code < 200 || code >= 300) return null;
+            download = File.createTempFile("artwork-", ".tmp", getCacheDir());
+            try (InputStream in = conn.getInputStream();
+                 FileOutputStream out = new FileOutputStream(download)) {
+                byte[] buffer = new byte[8192];
+                int total = 0, count;
+                while ((count = in.read(buffer)) != -1) {
+                    total += count;
+                    if (total > 16 * 1024 * 1024) return null;
+                    out.write(buffer, 0, count);
                 }
-                return bmp;
             }
+            return ArtworkDecoder.decodeFile(download.getAbsolutePath(), 512);
         } catch (Exception e) {
-            Log.w(TAG, "No se pudo cargar la carátula: " + url, e);
+            Log.w(TAG, "No se pudo cargar la carátula", e);
             return null;
         } finally {
-            // no-op: la conexión se cierra con el try-with-resources
+            if (conn != null) conn.disconnect();
+            if (download != null) download.delete();
         }
     }
 
     /** Guarda la carátula en un fichero de caché para que el widget pueda
      *  mostrarla sin volver a descargarla (se llama en segundo plano). */
-    private String saveArtworkToCache(Bitmap art) {
+    private String saveArtworkToCache(Bitmap art, long generation) {
         try {
             File dir = new File(getCacheDir(), "artwork");
             if (!dir.exists() && !dir.mkdirs()) {
                 return null;
             }
-            File out = new File(dir, "current.png");
+            File[] oldFiles = dir.listFiles();
+            if (oldFiles != null) {
+                for (File old : oldFiles) {
+                    if (old.getName().startsWith("current") && old.getName().endsWith(".png")) old.delete();
+                }
+            }
+            File out = new File(dir, "current-" + generation + ".png");
             try (FileOutputStream fos = new FileOutputStream(out)) {
                 art.compress(Bitmap.CompressFormat.PNG, 100, fos);
                 fos.flush();
@@ -797,6 +832,9 @@ public class MediaService extends MediaBrowserServiceCompat {
     @Override
     public void onDestroy() {
         sInstance = null;
+        ++sArtGeneration;
+        sAppliedArtUrl = null;
+        sAppliedArtPath = null;
         if (mSession != null) {
             mSession.release();
         }

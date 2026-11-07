@@ -18,6 +18,20 @@ public class MediaStateStore {
         mPrefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
+    /** Una sola escritura para cada instantánea del widget. */
+    public void setPlayback(String title, String artist, String artworkUrl,
+                            String artworkPath, boolean playing, long position, long duration) {
+        mPrefs.edit()
+                .putString("title", title == null ? "" : title)
+                .putString("artist", artist == null ? "" : artist)
+                .putString("artworkUrl", artworkUrl == null ? "" : artworkUrl)
+                .putString("artworkPath", artworkPath == null ? "" : artworkPath)
+                .putBoolean("playing", playing)
+                .putLong("position", position)
+                .putLong("duration", duration)
+                .apply();
+    }
+
     public void setTitle(String v) { put("title", v == null ? "" : v); }
     public String getTitle() { return mPrefs.getString("title", ""); }
 

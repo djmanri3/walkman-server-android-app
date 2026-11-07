@@ -7,9 +7,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.widget.RemoteViews;
 
@@ -41,6 +41,9 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
     private static final Set<Integer> sWidgetIds = new HashSet<>();
     private static final float START_X_FRAC = 0.23f;
     private static ParticleRenderer sRenderer;
+    // Una sola miniatura, compartida por todas las instancias del widget.
+    private static String sArtworkKey;
+    private static Bitmap sArtwork;
     private static boolean sAnimating = false;
     private static boolean sPlaying = false;
     private static int sAccentColor = 0xFFAA00FF;
@@ -55,6 +58,12 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
         public void run() {
             synchronized (LOCK) {
                 if (!sAnimating) {
+                    return;
+                }
+                PowerManager power = (PowerManager) sAppContext.getSystemService(Context.POWER_SERVICE);
+                if (power != null && !power.isInteractive()) {
+                    // No generar ni enviar bitmaps cuando la pantalla está apagada.
+                    sHandler.postDelayed(sAnimation, 1000L);
                     return;
                 }
                 if (sRenderer == null) {
@@ -240,15 +249,17 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
         views.setImageViewResource(R.id.widget_play,
                 playing ? R.drawable.ic_pause : R.drawable.ic_play);
 
-        // Primer frame de partículas (si procede).
-        synchronized (LOCK) {
-            if (sRenderer == null) {
-                sRenderer = new ParticleRenderer();
+        // Sólo generar partículas si pueden verse. Al pausar, limpiar la capa
+        // con un recurso evita reservar un bitmap transparente en cada poll.
+        PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        if (playing && (power == null || power.isInteractive())) {
+            synchronized (LOCK) {
+                if (sRenderer == null) sRenderer = new ParticleRenderer();
+                Bitmap frame = sRenderer.nextFrame(320, 300, true, accent, progressFrac, START_X_FRAC);
+                if (frame != null) views.setImageViewBitmap(R.id.widget_particles, frame);
             }
-            Bitmap frame = sRenderer.nextFrame(320, 300, playing, accent, progressFrac, START_X_FRAC);
-            if (frame != null) {
-                views.setImageViewBitmap(R.id.widget_particles, frame);
-            }
+        } else {
+            views.setImageViewResource(R.id.widget_particles, android.R.color.transparent);
         }
 
         mgr.updateAppWidget(widgetId, views);
@@ -266,18 +277,16 @@ public class WalkmanWidgetProvider extends AppWidgetProvider {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
-    private static Bitmap decodeArtwork(String path) {
+    private static synchronized Bitmap decodeArtwork(String path) {
         try {
-            File f = new File(path);
-            if (!f.exists()) {
-                return null;
-            }
-            Bitmap bmp = BitmapFactory.decodeFile(f.getAbsolutePath());
-            if (bmp != null && bmp.getWidth() > 256) {
-                int h = (int) (bmp.getHeight() * (256.0 / bmp.getWidth()));
-                return Bitmap.createScaledBitmap(bmp, 256, h, true);
-            }
-            return bmp;
+            File file = new File(path);
+            if (!file.exists()) return null;
+            String key = path + ":" + file.lastModified() + ":" + file.length();
+            if (key.equals(sArtworkKey) && sArtwork != null) return sArtwork;
+            Bitmap art = ArtworkDecoder.decodeFile(path, 256);
+            sArtworkKey = key;
+            sArtwork = art;
+            return art;
         } catch (Exception e) {
             return null;
         }

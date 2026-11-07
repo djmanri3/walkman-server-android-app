@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -732,7 +733,7 @@ public class MainActivity extends Activity {
                                     // la pista O difiere de la carátula ya aplicada.
                                     boolean trackChanged = MediaService.isDifferentTrack(svc, title, artist);
                                     boolean artChanged = !cArt.isEmpty()
-                                            && !cArt.equals(MediaService.appliedArtUrl());
+                                            && svc.needsArtworkUpdate(cArt);
                                     if (trackChanged || artChanged) {
                                         final String fArt = cArt;
                                         runOnUiThread(() -> {
@@ -811,6 +812,20 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> executeCommand(command, argument));
             }
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Al plegar/desplegar conservamos el mismo WebView y su audio, cola y
+        // navegación. Sólo actualizamos la ventana y sus márgenes seguros.
+        makeSystemBarsTransparent();
+        if (mFullscreenView != null) {
+            setSystemBarsVisible(false);
+        }
+        View content = findViewById(android.R.id.content);
+        content.requestLayout();
+        ViewCompat.requestApplyInsets(content);
     }
 
     /** Inicia el servicio multimedia (crea la sesión y deja listo el puente). */

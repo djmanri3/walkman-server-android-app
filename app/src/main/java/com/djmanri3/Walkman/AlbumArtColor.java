@@ -29,8 +29,9 @@ public final class AlbumArtColor {
             // Reducimos la muestra para ir rápido (p.ej. 24x24).
             int w = Math.max(1, src.getWidth());
             int h = Math.max(1, src.getHeight());
-            int sw = 24;
-            int sh = Math.max(1, (int) (h * ((float) sw / w)));
+            float scale = Math.min(1f, 24f / Math.max(w, h));
+            int sw = Math.max(1, Math.round(w * scale));
+            int sh = Math.max(1, Math.round(h * scale));
             Bitmap small = Bitmap.createScaledBitmap(src, sw, sh, true);
             int[] pixels = new int[sw * sh];
             small.getPixels(pixels, 0, sw, 0, 0, sw, sh);
