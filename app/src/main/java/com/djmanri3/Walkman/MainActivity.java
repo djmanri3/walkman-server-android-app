@@ -22,6 +22,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -33,6 +35,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
+import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -666,6 +672,9 @@ public class MainActivity extends Activity {
             """;
 
     private WebView mWebView;
+    private String mBackNavigationScript = "false";
+    private boolean mBackNavigationPending;
+    private OnBackInvokedCallback mBackCallback;
     private Handler mHandler;
     private MiniHttpServer mHttpServer;
     private boolean mWebReady;
@@ -777,6 +786,20 @@ public class MainActivity extends Activity {
             WebView.setWebContentsDebuggingEnabled(true);
         }
         setupWebView();
+        try (InputStream script = getAssets().open("back-navigation.js")) {
+            ByteArrayOutputStream contents = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int count;
+            while ((count = script.read(buffer)) != -1) contents.write(buffer, 0, count);
+            mBackNavigationScript = new String(contents.toByteArray(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            android.util.Log.w("Walkman", "No se pudo cargar la navegación Atrás", e);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            mBackCallback = this::navigateBackInWebApp;
+            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    OnBackInvokedDispatcher.PRIORITY_DEFAULT, mBackCallback);
+        }
 
         // Aseguramos que el MediaService exista para que instance() no sea
         // null cuando la web notifique su estado a través de AndroidBridge.
@@ -1378,16 +1401,25 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
+        navigateBackInWebApp();
+    }
+
+    private void navigateBackInWebApp() {
         if (mFullscreenView != null) {
-            // El botón atrás sale de pantalla completa en vez de cerrar la app.
             exitFullscreen();
             return;
         }
-        if (mWebView != null && mWebView.canGoBack()) {
-            mWebView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (mWebView == null || mBackNavigationPending) return;
+        mBackNavigationPending = true;
+        WebView webView = mWebView;
+        webView.evaluateJavascript(mBackNavigationScript, handled -> {
+            mBackNavigationPending = false;
+            if (mWebView != webView || isFinishing() || isDestroyed()) return;
+            if (!"true".equals(handled) && webView.canGoBack()) {
+                webView.goBack();
+            }
+            // Sin historial, permanecer en la app en lugar de cerrar la Activity.
+        });
     }
 
     @Override
@@ -1431,6 +1463,9 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mBackCallback != null) {
+            getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mBackCallback);
+        }
         MediaService.setCommandListener(null);
         AndroidBridge.setLocalFolderListener(null);
         AndroidBridge.setServerUrlListener(null);

@@ -29,3 +29,15 @@ La prueba debe imprimir `PASS`. Para comprobar la app completa:
 
 Si `gradle.properties` apunta a un JDK que ya no existe, se puede usar
 `-Dorg.gradle.java.home=/ruta/al/jdk17` sin cambiar la configuración del proyecto.
+
+## Navegación Atrás
+
+Con Node.js y Google Chrome instalados:
+
+```bash
+node tools/tests/back-navigation.test.js
+```
+
+Comprueba en un navegador real el regreso desde el reproductor, los botones de
+volver de la biblioteca, el cierre de paneles y submenús, y el regreso desde el menú principal de My Music a Playing. No instala ni abre la app del dispositivo. El gesto nativo y
+la interacción con el teclado deben comprobarse también en Android.
