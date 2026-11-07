@@ -60,6 +60,11 @@ public final class SonyAudioEngine {
         for (String abi : Build.SUPPORTED_ABIS) if (abi.equals("arm64-v8a") || abi.equals("armeabi-v7a")) return true;
         return false;
     }
+    @JavascriptInterface public boolean isEqualizerInstalled() {
+        Intent intent = new Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+                .setComponent(new ComponentName(EQ_PACKAGE, EQ_ACTIVITY));
+        return context.getPackageManager().resolveActivity(intent, 0) != null;
+    }
     @JavascriptInterface public String getState() { return snapshot; }
     public void setListener(Listener listener) { this.listener = listener; }
 

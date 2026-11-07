@@ -18,7 +18,9 @@ El botón de ecualizador abre Sony Equalizer. Sus cinco bandas, Clear Bass y VPT
 se reciben mediante ContentObserver. Se respetan «Aplicar a otras apps», la
 selección de aplicaciones y el interruptor de ecualización. La declaración
 `local.extracted.equalizer.NATIVE_SONY` evita añadir encima los efectos Android.
-Sin el controlador, el motor usa ecualización plana y VPT desactivado.
+Si el controlador no está instalado o su panel está deshabilitado al cargar la
+webapp, se conserva la reproducción web y su ecualizador Web Audio. Al instalar
+Sony Equalizer, vuelve a abrir la app para activar el motor Sony.
 
 ## APK
 

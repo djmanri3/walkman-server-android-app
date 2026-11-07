@@ -1,5 +1,7 @@
 (function () {
     if (window.__wmSonyAudio || !window.SonyAudio || !SonyAudio.isAvailable()) return;
+    // Keep the web decoder and its Web Audio equalizer together when Sony is absent.
+    if (!SonyAudio.isEqualizerInstalled()) return;
     var audio = document.getElementById('audio-player');
     if (!audio) return;
     window.__wmSonyAudio = true;

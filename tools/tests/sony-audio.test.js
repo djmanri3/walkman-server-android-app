@@ -9,16 +9,23 @@ let audioCtx = null, analyserNode = null;
 let playlist = [{Id:'1'}], currentTrackIndex = 0;
 const audio = document.getElementById('audio-player'), calls = [], events = [];
 const nativeSrc = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src').get;
-window.SonyAudio = {isAvailable:()=>true,getState:()=>'{"version":0}',
+let sonyInstalled = false, webEqualizerOpened = 0;
+window.SonyAudio = {isAvailable:()=>true,isEqualizerInstalled:()=>sonyInstalled,getState:()=>'{"version":0}',
  load:(source,version)=>calls.push(['load',source,version]),play:()=>calls.push(['play']),pause:()=>calls.push(['pause']),
  seek:time=>calls.push(['seek',time]),setVolume:value=>calls.push(['volume',value]),openEqualizer:()=>calls.push(['eq'])};
-window.toggleEqualizer = ()=>{};
+window.toggleEqualizer = ()=>{webEqualizerOpened++;};
 window.playTrack = function(){ audio.src = '/restored.mp3'; return audio.play(); };
 window.togglePlay = function(){ if(audio.paused) return audio.play(); audio.pause(); };
 function check(value,message){ if(!value) throw new Error(message); }
 function version(){return calls.filter(c=>c[0]==='load').at(-1)[2];}
 ['loadedmetadata','play','playing','pause','ended','timeupdate','seeked','error'].forEach(name=>audio.addEventListener(name,()=>events.push(name)));
 (async()=>{try {
+ const webPlay=audio.play, webEqualizer=window.toggleEqualizer;
+ eval(${JSON.stringify(asset('sony-audio.js'))});
+ check(!window.__wmSonyAudio && !document.documentElement.dataset.audioEngine && audio.play===webPlay && calls.length===0, 'Without Sony preserve web playback and Web Audio DSP');
+ check(window.toggleEqualizer===webEqualizer, 'Keep original web equalizer');
+ toggleEqualizer();check(webEqualizerOpened===1, 'Web equalizer opens without Sony installed');
+ sonyInstalled=true;
  eval(${JSON.stringify(asset('sony-audio.js'))});
  eval(${JSON.stringify(asset('android-playback.js'))});
  check(document.documentElement.dataset.audioEngine==='sony', 'Native engine selected');
