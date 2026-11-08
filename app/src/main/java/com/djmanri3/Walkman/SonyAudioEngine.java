@@ -146,12 +146,15 @@ public final class SonyAudioEngine {
     private void publish() {
         try {
             boolean playing = player != null && prepared && player.isPlaying();
+            android.media.AudioDeviceInfo output = playing ? player.getNativeOutputDevice() : null;
             JSONObject state = new JSONObject().put("version", version).put("playing", playing)
                     .put("ready", prepared).put("loading", wantsPlay && !prepared).put("ended", ended).put("error", error)
                     .put("position", prepared ? player.getCurrentPosition() / 1000.0 : 0)
                     .put("duration", prepared ? player.getDuration() / 1000.0 : 0)
                     .put("sampleRate", prepared ? player.getNativeSampleRate() : 48000)
                     .put("bytesWritten", prepared ? player.getNativeBytesWritten() : 0)
+                    .put("usbOutput", UsbAudioRouting.isUsbOutput(output))
+                    .put("outputDevice", output != null ? output.getProductName().toString() : "")
                     .put("spectrum", prepared ? android.util.Base64.encodeToString(player.getNativeSpectrum(), android.util.Base64.NO_WRAP) : "");
             snapshot = state.toString();
             String json = snapshot;

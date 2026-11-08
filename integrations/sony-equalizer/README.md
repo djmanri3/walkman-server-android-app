@@ -22,6 +22,31 @@ Si el controlador no está instalado o su panel está deshabilitado al cargar la
 webapp, se conserva la reproducción web y su ecualizador Web Audio. Al instalar
 Sony Equalizer, vuelve a abrir la app para activar el motor Sony.
 
+## DAC USB
+
+Walkman registra `USB_DEVICE_ATTACHED` con un filtro USB Audio Class (clase 1),
+para aparecer como opción de apertura al conectar un DAC. La actividad existente
+se reutiliza si ya estaba abierta. El diálogo y las preferencias de apertura
+los gestiona Android; después de actualizar, desconecta y vuelve a conectar
+el DAC para generar el evento de conexión.
+
+El motor Sony prefiere los DAC, auriculares y accesorios de audio USB que
+Android publique como salidas de audio. Detecta conexiones y desconexiones
+durante la reproducción, conserva el DAC seleccionado si hay varios y libera
+la preferencia cuando se retira. No requiere acceso USB directo ni permisos
+adicionales para el DAC. Sin Sony Equalizer, el reproductor web usa la salida
+USB seleccionada por el sistema.
+
+El aviso Android de desconexión de auriculares pausa la reproducción para
+evitar que continúe en el altavoz. Después se puede reanudar en la salida
+normal. La sesión multimedia, Clear Bass y VPT se conservan.
+
+Esta integración usa AudioTrack y el mezclador de Android; no añade un driver
+USB exclusivo ni salida bit-perfect. El DSP Sony mantiene PCM16 y hasta 48 kHz.
+El icono Hi-Res describe el archivo de origen, no el formato de salida al DAC.
+El estado del puente incluye `usbOutput` y `outputDevice`, obtenidos de la ruta
+real mientras suena audio. La compatibilidad física requiere probar cada DAC.
+
 ## APK
 
 - `releases/Walkman-v5.0-SonyEQ.apk`: app con el DSP integrado.

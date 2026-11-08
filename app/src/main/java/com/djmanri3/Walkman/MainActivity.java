@@ -3,6 +3,9 @@ package com.djmanri3.Walkman;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -26,6 +29,7 @@ import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
 import androidx.core.graphics.Insets;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -54,6 +58,15 @@ import java.util.Locale;
 public class MainActivity extends Activity {
 
     private static final int REQ_FOLDER = 5001;
+    private boolean mNoisyReceiverRegistered;
+    private final BroadcastReceiver mNoisyReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            if (!android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) return;
+            // Stop native audio immediately, even if the WebView is in the background.
+            if (mSonyAudio != null) mSonyAudio.pause();
+            executeCommand("pause", null);
+        }
+    };
 
     /** Extra con la consulta de voz recibida vía VoiceSearchActivity. */
     static final String EXTRA_VOICE_QUERY = "com.djmanri3.Walkman.voice_query";
@@ -752,6 +765,10 @@ public class MainActivity extends Activity {
     private Handler mHandler;
     private MiniHttpServer mHttpServer;
     private boolean mWebReady;
+    private boolean mLocalRestorePending;
+    private int mLocalGeneration;
+    private final java.util.concurrent.ExecutorService mLocalLibraryWorker =
+            java.util.concurrent.Executors.newSingleThreadExecutor();
     private String[] mPendingCommand;
     private final Map<String, String[]> mPendingBrowseCommands = new LinkedHashMap<>();
 
@@ -866,6 +883,10 @@ public class MainActivity extends Activity {
             mWebView.evaluateJavascript("if(window.wmSonyAudioState)wmSonyAudioState(" + json + ");", null);
         });
         setupWebView();
+        ContextCompat.registerReceiver(this, mNoisyReceiver,
+                new IntentFilter(android.media.AudioManager.ACTION_AUDIO_BECOMING_NOISY),
+                ContextCompat.RECEIVER_NOT_EXPORTED);
+        mNoisyReceiverRegistered = true;
         mBackNavigationScript = loadScriptAsset("back-navigation.js");
         mPlaybackScript = loadScriptAsset("android-playback.js");
         mSonyAudioScript = loadScriptAsset("sony-audio.js");
@@ -1084,19 +1105,18 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                mWebReady = false;
+                mLocalGeneration++;
+            }
+
+            @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 injectBridgeHelpers();
                 mWebReady = true;
                 pushSafeAreaToPage();
-                List<String[]> browseCommands = new ArrayList<>(mPendingBrowseCommands.values());
-                mPendingBrowseCommands.clear();
-                for (String[] pending : browseCommands) executeCommand(pending[0], pending[1]);
-                if (mPendingCommand != null) {
-                    String[] p = mPendingCommand;
-                    mPendingCommand = null;
-                    executeCommand(p[0], p[1]);
-                }
+                restoreCachedLocalLibrary();
                 mHandler.postDelayed(mPositionPoll, 500);
             }
         });
@@ -1163,7 +1183,7 @@ public class MainActivity extends Activity {
     /** Traduce una orden del sistema a una llamada JavaScript. */
     private void executeCommand(String command, String arg) {
         if (mWebView == null) return;
-        if (!mWebReady) {
+        if (!mWebReady || mLocalRestorePending) {
             // La web aún no ha terminado de cargar (p. ej. voz en arranque en
             // frío): retenemos la última orden y la ejecutamos en onPageFinished.
             if (command.startsWith("refresh")) {
@@ -1379,45 +1399,87 @@ public class MainActivity extends Activity {
             reportLocalImportError("No se pudo iniciar el servidor de audio local.");
             return;
         }
-        // La recopilación con DocumentFile es lenta con muchos archivos;
-        // se hace en un hilo de fondo para no congelar la interfaz (ANR).
-        new Thread(() -> {
-            final List<String> ids = new ArrayList<>();
-            final List<Uri> uris = new ArrayList<>();
+        final int generation = ++mLocalGeneration;
+        mLocalRestorePending = true;
+        mLocalLibraryWorker.execute(() -> {
             try {
+                List<String> ids = new ArrayList<>();
+                List<Uri> uris = new ArrayList<>();
                 List<JSONObject> tracks = LocalMusicPicker.collectTree(
                         getApplicationContext(), treeUri, ids, uris, server, server.getPort());
+                if (tracks.isEmpty()) throw new IOException("No audio files found");
+                try {
+                    LocalLibraryCache.save(getApplicationContext(), treeUri, tracks, ids, server);
+                } catch (Exception cacheError) {
+                    android.util.Log.w("LocalFolder", "No se pudo guardar la biblioteca local", cacheError);
+                }
+                JSONArray arr = new JSONArray();
+                for (JSONObject track : tracks) arr.put(track);
+                deliverLocalLibrary(wv, generation, arr.toString(), false);
+            } catch (Exception error) {
+                android.util.Log.e("LocalFolder", "Error recopilando carpeta", error);
+                runOnUiThread(() -> {
+                    if (generation != mLocalGeneration || isDestroyed()) return;
+                    reportLocalImportError("No se pudo leer música de esta carpeta. Comprueba los archivos y el permiso de acceso.");
+                    finishLocalLibraryOperation(generation);
+                });
+            }
+        });
+    }
 
-                if (tracks.isEmpty()) {
-                    runOnUiThread(() -> {
-                        try {
-                            wv.evaluateJavascript(
-                                    "try { if (window.onAndroidLocalError) onAndroidLocalError('No se encontraron archivos de audio.'); } catch(e){}",
-                                    null);
-                        } catch (Exception ignored) {
-                        }
-                    });
+    private void restoreCachedLocalLibrary() {
+        if (isDestroyed()) return;
+        if (mHttpServer == null || mHttpServer.getPort() <= 0) {
+            mLocalRestorePending = false;
+            flushPendingCommands();
+            return;
+        }
+        final WebView wv = mWebView;
+        final MiniHttpServer server = mHttpServer;
+        final int generation = ++mLocalGeneration;
+        mLocalRestorePending = true;
+        mLocalLibraryWorker.execute(() -> {
+            try {
+                JSONArray tracks = LocalLibraryCache.restore(getApplicationContext(), server);
+                if (tracks != null) {
+                    deliverLocalLibrary(wv, generation, tracks.toString(), true);
                     return;
                 }
-
-                JSONArray arr = new JSONArray();
-                for (JSONObject t : tracks) {
-                    arr.put(t);
-                }
-                final String json = arr.toString();
+            } catch (Exception error) {
+                android.util.Log.w("LocalFolder", "No se pudo restaurar la biblioteca local", error);
                 runOnUiThread(() -> {
-                    try {
-                        wv.evaluateJavascript(
-                                "try { if (window.onAndroidLocalTracks) onAndroidLocalTracks(" + json + "); } catch(e){}",
-                                null);
-                    } catch (Exception ignored) {
-                    }
+                    if (generation != mLocalGeneration || isDestroyed() || mWebView != wv) return;
+                    wv.evaluateJavascript("if(window.wmAndroidLocalRestoreError)wmAndroidLocalRestoreError();", null);
                 });
-            } catch (Throwable t) {
-                android.util.Log.e("LocalFolder", "Error recopilando carpeta", t);
-                reportLocalImportError("No se pudo leer la carpeta de música. Comprueba el permiso de acceso y vuelve a intentarlo.");
             }
-        }, "local-picker").start();
+            runOnUiThread(() -> finishLocalLibraryOperation(generation));
+        });
+    }
+
+    private void deliverLocalLibrary(WebView wv, int generation, String json, boolean restore) {
+        runOnUiThread(() -> {
+            if (isDestroyed() || mWebView != wv || generation != mLocalGeneration) return;
+            String callback = restore ? "wmRestoreAndroidLocalTracks" : "onAndroidLocalTracks";
+            wv.evaluateJavascript("if(window." + callback + ")window." + callback + "(" + json + ");",
+                    ignored -> finishLocalLibraryOperation(generation));
+        });
+    }
+
+    private void finishLocalLibraryOperation(int generation) {
+        if (isDestroyed() || generation != mLocalGeneration) return;
+        mLocalRestorePending = false;
+        flushPendingCommands();
+    }
+
+    private void flushPendingCommands() {
+        List<String[]> browseCommands = new ArrayList<>(mPendingBrowseCommands.values());
+        mPendingBrowseCommands.clear();
+        for (String[] pending : browseCommands) executeCommand(pending[0], pending[1]);
+        if (mPendingCommand != null) {
+            String[] pending = mPendingCommand;
+            mPendingCommand = null;
+            executeCommand(pending[0], pending[1]);
+        }
     }
 
     private void reportLocalImportError(String message) {
@@ -1585,6 +1647,12 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        mLocalGeneration++;
+        mLocalLibraryWorker.shutdownNow();
+        if (mNoisyReceiverRegistered) {
+            unregisterReceiver(mNoisyReceiver);
+            mNoisyReceiverRegistered = false;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && mBackCallback != null) {
             getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(mBackCallback);
         }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- USB Audio Class, including audio interfaces on composite devices.
+         Leave subclass/protocol open to support UAC1, UAC2 and UAC3 DACs. -->
+    <usb-device class="1" />
+</resources>

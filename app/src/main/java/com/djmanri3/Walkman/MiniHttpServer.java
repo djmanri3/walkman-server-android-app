@@ -53,6 +53,9 @@ public class MiniHttpServer {
         return id;
     }
 
+    Uri fileFor(String id) { return mFiles.get(id); }
+    byte[] bytesFor(String id) { return mBytes.get(id); }
+
     public synchronized boolean start() {
         if (mRunning) {
             return true;

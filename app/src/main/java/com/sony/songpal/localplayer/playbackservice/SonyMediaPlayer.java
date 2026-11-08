@@ -86,6 +86,7 @@ public class SonyMediaPlayer extends MediaPlayer {
  public void setOnBufferingUpdateListener(OnBufferingUpdateListener l){}
  public boolean setLowPowerAudio(boolean value){return false;}
  public byte[] getNativeSpectrum(){synchronized(LOCK){return owner==this&&engine!=null?engine.getSpectrum():new byte[128];}}
+ public AudioDeviceInfo getNativeOutputDevice(){synchronized(LOCK){return owner==this&&engine!=null?engine.getOutputDevice():null;}}
  public int getNativeSampleRate(){synchronized(LOCK){return owner==this&&engine!=null?engine.outputRate:48000;}}
  public long getNativeBytesWritten(){synchronized(LOCK){return owner==this&&engine!=null?engine.bytesWritten:0;}}
  private void applySettings(){synchronized(LOCK){if(owner!=this||engine==null)return;int[] bands=new int[6];boolean enabled=false;int vpt=4;

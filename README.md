@@ -89,3 +89,20 @@ notificaciones y en la pantalla de bloqueo.
   está en otro sitio.
 - El audio de red se reproduce desde los servidores que configures; el WebView
   usa `MIXED_CONTENT_COMPATIBILITY_MODE` para tolerar medios http/https mixtos.
+
+## Biblioteca local guardada
+
+Después de seleccionar una carpeta en **Connect to Server → Local**, Walkman
+conserva un índice privado con las canciones, listas, metadatos de calidad y
+portadas. En los siguientes arranques restaura ese índice sin recorrer de nuevo
+las carpetas ni extraer las etiquetas. No duplica los archivos de música.
+
+El permiso de lectura de la carpeta se conserva con SAF. Las direcciones del
+servidor HTTP local se actualizan al nuevo puerto al arrancar, incluidas las
+pistas de la cola guardada. La restauración mantiene el servidor remoto si
+habías seleccionado uno.
+
+Para añadir canciones nuevas o reflejar cambios en los archivos, vuelve a
+seleccionar la carpeta en Local: esto actualiza el índice. Tras actualizar desde
+una versión sin esta caché, selecciona la carpeta una vez para crearla. Si se
+retira el permiso de la carpeta, la app pide volver a seleccionarla.

@@ -101,3 +101,30 @@ imagen grandes. El límite de tiempo detecta el antiguo bucle infinito al leer
 los bloques FLAC desalineados. Requiere JDK 17 y el SDK de Android.
 También comprueba códec, frecuencia de muestreo, profundidad de bits y canales
 del STREAMINFO de FLAC (44,1/48/96/192 kHz, 16/24/32 bits).
+
+## Selección de DAC USB
+
+```bash
+python3 tools/tests/run-usb-routing-tests.py
+```
+
+Ejecuta la clase de selección de salida con dispositivos y callbacks Android
+simulados. Comprueba DAC conectado antes de reproducir, conexión durante la
+reproducción, varios DAC, exclusión de entradas USB, desconexión, rechazo de
+una ruta y limpieza de callbacks al liberar la pista. Requiere JDK 17; no usa
+ADB ni verifica el driver, la salida física o el aviso de desconexión del
+sistema. Esas comprobaciones requieren un DAC conectado al móvil.
+
+## Restauración de la biblioteca local
+
+`node tools/tests/local-import.test.js` también comprueba que la cola local
+recibe las URLs renovadas y conserva los metadatos de calidad, que se retiran
+referencias locales ausentes del índice y que no se sustituye un servidor remoto.
+
+Para verificar la persistencia en dispositivo: seleccionar una carpeta una vez,
+comprobar `files/local-library/index.json` en los datos privados, cerrar el
+proceso con `adb shell am force-stop com.djmanri3.Walkman` y volver a abrir la
+app. Deben reaparecer canciones, listas y portadas sin abrir el selector; las
+URLs deben usar el nuevo puerto local y permitir reproducir la música. El
+índice conserva sus identificadores y su fecha de modificación durante esta
+restauración. Volver a seleccionar la carpeta actualiza el índice.
