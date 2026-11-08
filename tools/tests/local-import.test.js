@@ -1,0 +1,33 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const script = fs.readFileSync(require('node:path').join(__dirname, '../../app/src/main/assets/local-import.js'), 'utf8');
+function setup(receive) {
+    const elements = {'local-banner': {style: {}}, 'local-status': {style: {}, textContent: ''}};
+    const context = {document: {getElementById: id => elements[id]}, console: {error() {}}, onAndroidLocalTracks: receive};
+    context.window = context;
+    vm.runInNewContext(script, context);
+    return {context, elements};
+}
+let received;
+const {context, elements} = setup(tracks => {received = tracks;});
+const tracks = [{Type: 'Audio', Name: 'Song'}, {Type: 'Playlist'}];
+context.onAndroidLocalTracks(tracks);
+assert.equal(received, tracks);
+assert.equal(elements['local-banner'].style.display, 'none');
+assert.equal(elements['local-status'].style.display, 'none');
+context.onAndroidLocalTracks([]);
+assert.match(elements['local-status'].textContent, /No se encontraron/);
+context.onAndroidLocalError('Acceso denegado');
+assert.equal(elements['local-status'].textContent, 'Acceso denegado');
+assert.equal(elements['local-banner'].style.display, 'none');
+context.onAndroidLocalCancelled();
+assert.equal(elements['local-status'].style.display, 'none');
+const failed = setup(() => {throw new Error('Render failed');});
+failed.context.onAndroidLocalTracks(tracks);
+assert.match(failed.elements['local-status'].textContent, /No se pudo cargar/);
+assert.equal(failed.elements['local-banner'].style.display, 'none');
+const missing = setup(undefined);
+missing.context.onAndroidLocalTracks(tracks);
+assert.match(missing.elements['local-status'].textContent, /No se pudo cargar/);
+console.log('PASS: local import success, cancellation, empty folder and native/web errors finish loading');

@@ -745,6 +745,7 @@ public class MainActivity extends Activity {
     private String mBackNavigationScript = "false";
     private String mPlaybackScript = "false";
     private String mSonyAudioScript = "false";
+    private String mLocalImportScript = "false";
     private SonyAudioEngine mSonyAudio;
     private boolean mBackNavigationPending;
     private OnBackInvokedCallback mBackCallback;
@@ -868,6 +869,7 @@ public class MainActivity extends Activity {
         mBackNavigationScript = loadScriptAsset("back-navigation.js");
         mPlaybackScript = loadScriptAsset("android-playback.js");
         mSonyAudioScript = loadScriptAsset("sony-audio.js");
+        mLocalImportScript = loadScriptAsset("local-import.js");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mBackCallback = this::navigateBackInWebApp;
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
@@ -1137,6 +1139,7 @@ public class MainActivity extends Activity {
         if (mWebView == null) return;
         mWebView.evaluateJavascript(mSonyAudioScript, null);
         mWebView.evaluateJavascript(mPlaybackScript, null);
+        mWebView.evaluateJavascript(mLocalImportScript, null);
         // Panel "Servidor Walkman" embebido en la sección de Ajustes de la web.
         try {
             mWebView.evaluateJavascript(SERVER_EMBED_SCRIPT, null);
@@ -1359,6 +1362,7 @@ public class MainActivity extends Activity {
                 startActivityForResult(i, REQ_FOLDER);
             } catch (Exception e) {
                 android.util.Log.e("LocalFolder", "No se pudo abrir el selector", e);
+                reportLocalImportError("No se pudo abrir el selector de carpetas.");
             }
         });
     }
@@ -1366,10 +1370,15 @@ public class MainActivity extends Activity {
     /** Recopila los archivos de la carpeta elegida y los inyecta a la web. */
     private void handleFolderResult(Uri treeUri) {
         if (mWebView == null || mHttpServer == null) {
+            reportLocalImportError("No se pudo iniciar la carga de música local.");
             return;
         }
         final WebView wv = mWebView;
         final MiniHttpServer server = mHttpServer;
+        if (server.getPort() <= 0) {
+            reportLocalImportError("No se pudo iniciar el servidor de audio local.");
+            return;
+        }
         // La recopilación con DocumentFile es lenta con muchos archivos;
         // se hace en un hilo de fondo para no congelar la interfaz (ANR).
         new Thread(() -> {
@@ -1406,13 +1415,27 @@ public class MainActivity extends Activity {
                 });
             } catch (Throwable t) {
                 android.util.Log.e("LocalFolder", "Error recopilando carpeta", t);
+                reportLocalImportError("No se pudo leer la carpeta de música. Comprueba el permiso de acceso y vuelve a intentarlo.");
             }
         }, "local-picker").start();
+    }
+
+    private void reportLocalImportError(String message) {
+        runOnUiThread(() -> {
+            if (mWebView == null || isDestroyed()) return;
+            mWebView.evaluateJavascript("if(window.onAndroidLocalError)onAndroidLocalError("
+                    + JSONObject.quote(message) + ");", null);
+        });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_FOLDER && (resultCode != RESULT_OK || data == null || data.getData() == null)) {
+            if (mWebView != null) mWebView.evaluateJavascript(
+                    "if(window.onAndroidLocalCancelled)onAndroidLocalCancelled();", null);
+            return;
+        }
         if (requestCode == REQ_FOLDER && resultCode == RESULT_OK && data != null) {
             Uri treeUri = data.getData();
             if (treeUri != null) {

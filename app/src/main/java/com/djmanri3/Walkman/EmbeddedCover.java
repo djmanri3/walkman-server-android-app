@@ -4,6 +4,8 @@ import android.content.ContentResolver;
 import android.net.Uri;
 
 import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.SequenceInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +35,11 @@ public final class EmbeddedCover {
         public String track = "";
         public byte[] coverBytes;
         public String coverMime = "";
+        public String codec = "";
+        public int sampleRate;
+        public int bitDepth;
+        public int channels;
+        public long bitrate;
     }
 
     /**
@@ -61,6 +68,7 @@ public final class EmbeddedCover {
             }
         } catch (Exception ignored) {
         }
+        if (meta.sampleRate == 0) LocalAudioQuality.extract(cr, uri, meta);
         return meta;
     }
 
@@ -283,43 +291,39 @@ public final class EmbeddedCover {
 
     private static void flac(InputStream in, byte[] head, int n, AudioMeta meta) {
         try {
-            int pos = 4;
-            boolean firstBlock = true;
-            while (true) {
+            // extract() already read 16 bytes, including the beginning of STREAMINFO.
+            // Replay those bytes so every block starts at its actual boundary.
+            InputStream blocks = new SequenceInputStream(
+                    new ByteArrayInputStream(head, 4, Math.max(0, n - 4)), in);
+            long metadataBytes = 0;
+            for (int count = 0; count < 4096; count++) {
                 byte[] blockHead = new byte[4];
-                if (pos < n) {
-                    int avail = Math.min(4, n - pos);
-                    System.arraycopy(head, pos, blockHead, 0, avail);
-                    if (avail < 4) {
-                        readFully(in, blockHead, avail, 4 - avail);
-                    }
-                } else {
-                    readFully(in, blockHead, 0, 4);
-                }
-                pos += Math.min(4, Math.max(0, n - pos));
+                if (readFully(blocks, blockHead, 0, 4) != 4) return;
                 boolean last = (blockHead[0] & 0x80) != 0;
                 int type = blockHead[0] & 0x7F;
                 int len = (blockHead[1] & 0xFF) << 16
                         | (blockHead[2] & 0xFF) << 8
                         | (blockHead[3] & 0xFF);
-                // el primer bloque es STREAMINFO; los demás pueden estar antes que él
-                // en archivos raros; con firstBlock evitamos leer STREAMINFO(0) como comment.
-                if (len > 0) {
-                    byte[] data = new byte[Math.min(len, 4 * 1024 * 1024)];
-                    readFully(in, data, 0, data.length);
-                    if (type == 4) {
-                        vorbisComment(data, meta);
-                    } else if (type == 6) {
-                        pictureBlock(data, meta);
-                    } else if (len > data.length) {
-                        long remain = len - data.length;
-                        skipFully(in, remain);
-                    }
+                metadataBytes += len + 4;
+                if (type == 127 || metadataBytes > 64L * 1024 * 1024) return;
+                if ((type == 0 || type == 4 || type == 6) && len <= 4 * 1024 * 1024) {
+                    byte[] data = new byte[len];
+                    if (readFully(blocks, data, 0, len) != len) return;
+                    if (type == 0 && len == 34) {
+                        // FLAC STREAMINFO: 20-bit rate, 3-bit channels-1, 5-bit depth-1.
+                        int rate = (data[10] & 255) << 12 | (data[11] & 255) << 4 | (data[12] & 255) >>> 4;
+                        if (rate > 0) {
+                            meta.codec = "flac";
+                            meta.sampleRate = rate;
+                            meta.channels = ((data[12] & 14) >>> 1) + 1;
+                            meta.bitDepth = ((data[12] & 1) << 4 | (data[13] & 255) >>> 4) + 1;
+                        }
+                    } else if (type == 4) vorbisComment(data, meta);
+                    else if (type == 6) pictureBlock(data, meta);
+                } else {
+                    skipFully(blocks, len);
                 }
-                pos += len;
-                if (last) {
-                    break;
-                }
+                if (last) return;
             }
         } catch (Exception ignored) {
         }
@@ -377,6 +381,7 @@ public final class EmbeddedCover {
             pos += mimeLen;
             int descLen = intBE(data, pos);
             pos += 4 + descLen;
+            pos += 16; // width, height, depth and indexed colour count
             long picLen = uintBE(data, pos);
             pos += 4;
             if (pos + picLen <= data.length && picLen > 0) {

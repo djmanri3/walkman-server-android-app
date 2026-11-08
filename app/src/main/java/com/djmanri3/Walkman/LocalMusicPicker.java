@@ -546,6 +546,19 @@ public final class LocalMusicPicker {
             o.put("Album", albumName);
             o.put("Type", "Audio");
             o.put("Duration", 0);
+            if (meta != null && meta.sampleRate > 0 && !meta.codec.isEmpty()) {
+                JSONObject stream = new JSONObject();
+                stream.put("Type", "Audio");
+                stream.put("Codec", meta.codec);
+                stream.put("SampleRate", meta.sampleRate);
+                if (meta.channels > 0) stream.put("Channels", meta.channels);
+                if (meta.bitDepth > 0) stream.put("BitDepth", meta.bitDepth);
+                if (meta.bitrate > 0) stream.put("BitRate", meta.bitrate);
+                JSONObject source = new JSONObject();
+                source.put("Container", meta.codec);
+                source.put("MediaStreams", new JSONArray().put(stream));
+                o.put("MediaSources", new JSONArray().put(source));
+            }
             if (hasMeta && meta.year.length() > 0) {
                 o.put("ProductionYear", meta.year);
             }

@@ -79,3 +79,25 @@ ausente tras restaurar la cola, verifica su reparación antes de cambiar de
 canción y comprueba que Reproducir y Pausar sean órdenes idempotentes. También
 comprueba el inicio de una cola restaurada sin `audio.src`, la reanudación y
 las colas vacías. La reproducción real se verifica adicionalmente en Android.
+
+## Importación de música local
+
+```bash
+node tools/tests/local-import.test.js
+mkdir -p /tmp/walkman-metadata-tests
+javac -cp "$ANDROID_HOME/platforms/android-34/android.jar" \
+  -d /tmp/walkman-metadata-tests \
+  app/src/main/java/com/djmanri3/Walkman/EmbeddedCover.java \
+  app/src/main/java/com/djmanri3/Walkman/LocalAudioQuality.java \
+  tools/tests/EmbeddedCoverFlacTest.java
+timeout 10 java -cp "/tmp/walkman-metadata-tests:$ANDROID_HOME/platforms/android-34/android.jar" \
+  com.djmanri3.Walkman.EmbeddedCoverFlacTest
+```
+
+Comprueba la finalización de la carga al importar, cancelar, seleccionar una
+carpeta vacía o fallar el lector o la web. La prueba FLAC verifica metadatos y
+portada, archivos truncados, ausencia de marca de último bloque y bloques de
+imagen grandes. El límite de tiempo detecta el antiguo bucle infinito al leer
+los bloques FLAC desalineados. Requiere JDK 17 y el SDK de Android.
+También comprueba códec, frecuencia de muestreo, profundidad de bits y canales
+del STREAMINFO de FLAC (44,1/48/96/192 kHz, 16/24/32 bits).
