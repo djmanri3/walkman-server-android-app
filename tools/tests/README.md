@@ -128,3 +128,17 @@ app. Deben reaparecer canciones, listas y portadas sin abrir el selector; las
 URLs deben usar el nuevo puerto local y permitir reproducir la música. El
 índice conserva sus identificadores y su fecha de modificación durante esta
 restauración. Volver a seleccionar la carpeta actualiza el índice.
+
+## Temas y pulsación prolongada
+
+```bash
+node tools/tests/web-interactions.test.js
+```
+
+Requiere Google Chrome. Comprueba el aviso del tema seleccionado a Android,
+la apertura del menú existente en filas y tarjetas Music, la supresión del clic
+tras mantener pulsado y la conservación del toque corto y el asa de arrastre.
+También verifica cancelación al desplazar, recibir varios dedos, retirar una
+fila o cancelar el gesto. Ejecuta los casos con Pointer Events y con la
+alternativa Touch Events. El velo nativo de la barra de estado se comprueba
+en Android: visible en Modern, Classic y Z1; oculto en Music.

@@ -34,6 +34,16 @@ public class AndroidBridge {
     private static final String TAG = "AndroidBridge";
 
     private final Context mContext;
+    public interface ThemeListener { void onThemeChanged(String theme); }
+    private static volatile ThemeListener sThemeListener;
+
+    public static void setThemeListener(ThemeListener listener) { sThemeListener = listener; }
+
+    @JavascriptInterface
+    public void setWebTheme(String theme) {
+        ThemeListener listener = sThemeListener;
+        if (listener != null) listener.onThemeChanged(theme);
+    }
 
     /** Callback registrado por MainActivity para lanzar la selección SAF. */
     public interface LocalFolderListener {

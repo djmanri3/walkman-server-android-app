@@ -759,6 +759,8 @@ public class MainActivity extends Activity {
     private String mPlaybackScript = "false";
     private String mSonyAudioScript = "false";
     private String mLocalImportScript = "false";
+    private String mWebInteractionsScript = "false";
+    private String mWebTheme = "modern";
     private SonyAudioEngine mSonyAudio;
     private boolean mBackNavigationPending;
     private OnBackInvokedCallback mBackCallback;
@@ -864,6 +866,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mWebTheme = getSharedPreferences("walkman_appearance", MODE_PRIVATE).getString("theme", "modern");
         makeSystemBarsTransparent();
         setContentView(R.layout.activity_main);
         applySystemBarInsets();
@@ -874,6 +877,14 @@ public class MainActivity extends Activity {
         requestNotificationPermission();
 
         mWebView = findViewById(R.id.webview);
+        AndroidBridge.setThemeListener(theme -> runOnUiThread(() -> {
+            if (isDestroyed()) return;
+            String selected = "music".equals(theme) || "classic".equals(theme) || "z1".equals(theme) ? theme : "modern";
+            if (selected.equals(mWebTheme)) return;
+            mWebTheme = selected;
+            getSharedPreferences("walkman_appearance", MODE_PRIVATE).edit().putString("theme", selected).apply();
+            applyStatusBarScrim(mInsets[INSET_TOP]);
+        }));
         if (BuildConfig.DEBUG) {
             WebView.setWebContentsDebuggingEnabled(true);
         }
@@ -891,6 +902,7 @@ public class MainActivity extends Activity {
         mPlaybackScript = loadScriptAsset("android-playback.js");
         mSonyAudioScript = loadScriptAsset("sony-audio.js");
         mLocalImportScript = loadScriptAsset("local-import.js");
+        mWebInteractionsScript = loadScriptAsset("web-interactions.js");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             mBackCallback = this::navigateBackInWebApp;
             getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
@@ -1051,7 +1063,7 @@ public class MainActivity extends Activity {
             lp.height = height;
             scrim.setLayoutParams(lp);
         }
-        scrim.setVisibility(height > 0 ? View.VISIBLE : View.GONE);
+        scrim.setVisibility(height > 0 && !"music".equals(mWebTheme) ? View.VISIBLE : View.GONE);
     }
 
     /**
@@ -1160,6 +1172,7 @@ public class MainActivity extends Activity {
         mWebView.evaluateJavascript(mSonyAudioScript, null);
         mWebView.evaluateJavascript(mPlaybackScript, null);
         mWebView.evaluateJavascript(mLocalImportScript, null);
+        mWebView.evaluateJavascript(mWebInteractionsScript, null);
         // Panel "Servidor Walkman" embebido en la sección de Ajustes de la web.
         try {
             mWebView.evaluateJavascript(SERVER_EMBED_SCRIPT, null);
@@ -1647,6 +1660,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        AndroidBridge.setThemeListener(null);
         mLocalGeneration++;
         mLocalLibraryWorker.shutdownNow();
         if (mNoisyReceiverRegistered) {
