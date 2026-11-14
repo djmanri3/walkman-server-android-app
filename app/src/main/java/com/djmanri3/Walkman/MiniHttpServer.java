@@ -5,6 +5,9 @@ import android.net.Uri;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -30,7 +33,7 @@ public class MiniHttpServer {
 
     private final Context mContext;
     private final Map<String, Uri> mFiles = new ConcurrentHashMap<>();
-    private final Map<String, byte[]> mBytes = new ConcurrentHashMap<>();
+    private final Map<String, File> mArtwork = new ConcurrentHashMap<>();
     private ServerSocket mServerSocket;
     private ExecutorService mPool;
     private Thread mAcceptThread;
@@ -47,14 +50,22 @@ public class MiniHttpServer {
         return id;
     }
 
-    /** Registra un bloque de bytes (p. ej. una carátula incrustada) en memoria. */
-    public String addBytes(String id, byte[] data) {
-        mBytes.put(id, data);
+    /** Write embedded artwork immediately; the library can exceed the Java heap. */
+    public String addBytes(String id, byte[] data) throws IOException {
+        if (!id.matches("[A-Za-z0-9_]+")) throw new IOException("Invalid artwork id");
+        File dir = new File(mContext.getFilesDir(), "local-library/artwork");
+        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("Cannot create artwork cache");
+        File file = new File(dir, id);
+        try (FileOutputStream out = new FileOutputStream(file)) {
+            out.write(data);
+        }
+        addArtwork(id, file);
         return id;
     }
 
+    void addArtwork(String id, File file) { mArtwork.put(id, file); }
+    File artworkFor(String id) { return mArtwork.get(id); }
     Uri fileFor(String id) { return mFiles.get(id); }
-    byte[] bytesFor(String id) { return mBytes.get(id); }
 
     public synchronized boolean start() {
         if (mRunning) {
@@ -141,8 +152,8 @@ public class MiniHttpServer {
             }
 
             Uri uri = mFiles.get(id);
-            byte[] blob = mBytes.get(id);
-            if (uri == null && blob == null) {
+            File artwork = mArtwork.get(id);
+            if (uri == null && artwork == null) {
                 respondStatus(out, 404, "Not Found");
                 socket.close();
                 return;
@@ -153,13 +164,15 @@ public class MiniHttpServer {
                     : "cover.jpg";
             String mime = mimeFor(name);
             long length = -1;
-            if (blob != null) {
-                length = blob.length;
+            if (artwork != null) {
+                length = artwork.length();
             } else {
                 try {
                     if ("content".equals(uri.getScheme())) {
-                        length = mContext.getContentResolver()
-                                .openAssetFileDescriptor(uri, "r").getLength();
+                        try (android.content.res.AssetFileDescriptor descriptor = mContext
+                                .getContentResolver().openAssetFileDescriptor(uri, "r")) {
+                            if (descriptor != null) length = descriptor.getLength();
+                        }
                     }
                 } catch (Exception ignored) {
                 }
@@ -210,8 +223,8 @@ public class MiniHttpServer {
             out.flush();
 
             InputStream content;
-            if (blob != null) {
-                content = new java.io.ByteArrayInputStream(blob);
+            if (artwork != null) {
+                content = new FileInputStream(artwork);
             } else {
                 content = mContext.getContentResolver().openInputStream(uri);
             }

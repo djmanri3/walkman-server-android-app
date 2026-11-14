@@ -142,3 +142,20 @@ También verifica cancelación al desplazar, recibir varios dedos, retirar una
 fila o cancelar el gesto. Ejecuta los casos con Pointer Events y con la
 alternativa Touch Events. El velo nativo de la barra de estado se comprueba
 en Android: visible en Modern, Classic y Z1; oculto en Music.
+
+## Bibliotecas con muchas portadas
+
+`LargeArtworkSmokeTest` escribe y vuelve a registrar 100 portadas de 3 MB
+(300 MB en total) con un heap limitado a 64 MB. Detecta la retención de
+imágenes completas en el servidor. Usa una carpeta temporal aislada y la borra
+al terminar. Compilar `MiniHttpServer.java` y `LargeArtworkSmokeTest.java` con
+`android.jar`, convertir las clases con `d8` y enviar el DEX al dispositivo:
+
+```bash
+adb push /ruta/al/classes.dex /data/local/tmp/walkman-large-art.dex
+adb shell dalvikvm -Xmx64m -cp /data/local/tmp/walkman-large-art.dex com.djmanri3.Walkman.LargeArtworkSmokeTest disk-only
+```
+
+Debe imprimir `PASS`. Para verificar el flujo completo, importar una carpeta
+con muchas portadas incrustadas, comprobar que termina, reiniciar la app y
+comprobar la restauración y el acceso HTTP a sus portadas.

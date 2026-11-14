@@ -11,8 +11,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.FileInputStream;
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
@@ -42,12 +40,8 @@ final class LocalLibraryCache {
         for (String id : ids) {
             Uri uri = server.fileFor(id);
             if (uri != null) files.put(id, uri.toString());
-            byte[] bytes = server.bytesFor(id);
-            if (bytes != null) {
+            if (server.artworkFor(id) != null) {
                 if (!id.matches("[A-Za-z0-9_]+")) throw new IOException("Invalid artwork id");
-                try (FileOutputStream out = new FileOutputStream(new File(artwork, id))) {
-                    out.write(bytes);
-                }
                 covers.put(id);
                 keep.add(id);
             }
@@ -93,16 +87,9 @@ final class LocalLibraryCache {
             String id = covers.getString(i);
             if (!id.matches("[A-Za-z0-9_]+")) throw new IOException("Invalid cached artwork id");
             File cover = new File(new File(dir, "artwork"), id);
-            if (cover.isFile()) {
-                try (FileInputStream in = new FileInputStream(cover);
-                     ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
-                    byte[] buffer = new byte[8192];
-                    int count;
-                    while ((count = in.read(buffer)) != -1) bytes.write(buffer, 0, count);
-                    server.addBytes(id, bytes.toByteArray());
-                }
-            }
+            if (cover.isFile()) server.addArtwork(id, cover);
         }
+
         for (int i = 0; i < tracks.length(); i++) {
             JSONObject track = tracks.getJSONObject(i);
             for (String key : new String[]{"Path", "objUrl", "coverUrl"}) {

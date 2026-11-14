@@ -40,7 +40,7 @@ public final class LocalMusicPicker {
      */
     public static List<JSONObject> collectTree(Context context, Uri treeUri,
                                                List<String> ids, List<Uri> uris,
-                                               MiniHttpServer server, int serverPort) {
+                                               MiniHttpServer server, int serverPort) throws java.io.IOException {
         DocumentFile tree = DocumentFile.fromTreeUri(context, treeUri);
         if (tree == null || !tree.canRead()) {
             return new ArrayList<>();
@@ -60,10 +60,6 @@ public final class LocalMusicPicker {
 
         List<JSONObject> tracks = new ArrayList<>();
         ContentResolver cr = context.getContentResolver();
-        // Caché de url de carátula incrustada por uri de audio (para no reextraer).
-        Map<Uri, String> embeddedCoverByUri = new HashMap<>();
-        // Caché de metadatos embebidos por uri de audio.
-        Map<Uri, EmbeddedCover.AudioMeta> metaByUri = new HashMap<>();
         // Cachés para resolver referencias de las playlists.
         Map<Uri, String> idByUri = new HashMap<>();
         Map<Uri, String> urlByUri = new HashMap<>();
@@ -93,30 +89,16 @@ public final class LocalMusicPicker {
                 String url = "http://127.0.0.1:" + serverPort + "/" + id;
 
                 // Metadatos embebidos (título/artista/álbum/carátula).
-                EmbeddedCover.AudioMeta meta = metaByUri.get(f.getUri());
-                if (meta == null) {
-                    meta = EmbeddedCover.extract(cr, f.getUri());
-                    metaByUri.put(f.getUri(), meta);
-                }
-
+                // Process one file at a time: metadata must not retain every cover.
+                EmbeddedCover.AudioMeta meta = EmbeddedCover.extract(cr, f.getUri());
                 String cov = coverUrl;
-                // Si la carpeta no tiene portada separada, usamos la incrustada
-                // en el propio audio (ID3/FLAC) si existe.
-                if (cov.length() == 0) {
-                    cov = embeddedCoverByUri.get(f.getUri());
-                    if (cov == null) {
-                        byte[] img = meta != null ? meta.coverBytes : null;
-                        if (img != null && img.length > 0) {
-                            String cid = "c" + ids.size() + "_" + System.nanoTime();
-                            ids.add(cid);
-                            server.addBytes(cid, img);
-                            cov = "http://127.0.0.1:" + serverPort + "/" + cid;
-                        } else {
-                            cov = "";
-                        }
-                        embeddedCoverByUri.put(f.getUri(), cov);
-                    }
+                if (cov.isEmpty() && meta.coverBytes != null && meta.coverBytes.length > 0) {
+                    String cid = "c" + ids.size() + "_" + System.nanoTime();
+                    server.addBytes(cid, meta.coverBytes);
+                    ids.add(cid);
+                    cov = server.baseUrl() + cid;
                 }
+                meta.coverBytes = null;
                 tracks.add(trackJson(id, title, album, url, cov, meta));
 
                 idByUri.put(f.getUri(), id);
