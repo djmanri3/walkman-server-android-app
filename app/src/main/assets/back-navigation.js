@@ -39,6 +39,12 @@
         for (var j = 0; j < panels.length; j++) {
             if (close(panels[j][0], panels[j][1])) return true;
         }
+        // Music hides the shared Back buttons and supplies its own library navigation.
+        if (document.body && document.body.dataset.theme === 'music' &&
+                typeof window.handleMusicAndroidBack === 'function' &&
+                window.handleMusicAndroidBack() === true) {
+            return true;
+        }
         // Los botones de la web conservan su propio historial de álbumes,
         // artistas, playlists y favoritos; no reconstruirlo desde Android.
         var backButtons = document.querySelectorAll('.back-btn');

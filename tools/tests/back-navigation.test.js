@@ -20,6 +20,27 @@ try {
   reset(music);
   check(back() === true && calls.join() === 'tab:playing', 'My Music root must return to Playing'); count++;
 
+  document.body.dataset.theme = 'music';
+  window.handleMusicAndroidBack = () => { calls.push('music-back'); return true; };
+  reset(music);
+  check(back() && calls.join() === 'music-back', 'Music must delegate Back before falling through to Playing'); count++;
+
+  window.handleMusicAndroidBack = () => false;
+  reset(music);
+  check(back() && calls.join() === 'tab:playing', 'Music root must preserve native fallback when its handler declines'); count++;
+
+  window.handleMusicAndroidBack = () => { throw new Error('Music navigation called beneath an overlay'); };
+  window.toggleSearchOverlay = () => { calls.push('search'); document.getElementById('search-overlay').classList.remove('open'); };
+  reset(music + '<div id="search-overlay" class="open">Search</div>');
+  check(back() && calls.join() === 'search', 'Music must close overlays before navigating'); count++;
+
+  document.body.dataset.theme = 'classic';
+  window.handleMusicAndroidBack = () => { calls.push('music-back'); return true; };
+  reset(music);
+  check(back() && calls.join() === 'tab:playing', 'Music hook must not affect Classic'); count++;
+  delete document.body.dataset.theme;
+  delete window.handleMusicAndroidBack;
+
   reset(playing);
   check(back() === true && calls[0] === 'tab:music', 'Player must return to music'); count++;
 
