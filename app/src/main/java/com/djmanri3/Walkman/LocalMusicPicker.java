@@ -56,7 +56,8 @@ public final class LocalMusicPicker {
         Map<String, List<DocumentFile>> covers = new HashMap<>();
         List<DocumentFile> playlists = new ArrayList<>();
 
-        collect(dirToList(tree), rootName, audioByAlbum, covers, playlists);
+        Map<Uri, String> relativePaths = new HashMap<>();
+        collect(dirToList(tree), "", audioByAlbum, covers, playlists, relativePaths);
 
         List<JSONObject> tracks = new ArrayList<>();
         ContentResolver cr = context.getContentResolver();
@@ -66,9 +67,10 @@ public final class LocalMusicPicker {
         Map<Uri, String> coverByUri = new HashMap<>();
         List<DocumentFile> audioFiles = new ArrayList<>();
         for (Map.Entry<String, List<DocumentFile>> e : audioByAlbum.entrySet()) {
-            String album = e.getKey();
+            String folder = e.getKey();
+            String album = folder.isEmpty() ? rootName : folder.substring(folder.lastIndexOf('/') + 1);
             String coverUrl = "";
-            List<DocumentFile> cList = covers.get(album);
+            List<DocumentFile> cList = covers.get(folder);
             if (cList != null && !cList.isEmpty()) {
                 DocumentFile c = cList.get(0);
                 String cid = "c" + ids.size() + "_" + System.nanoTime();
@@ -99,7 +101,16 @@ public final class LocalMusicPicker {
                     cov = server.baseUrl() + cid;
                 }
                 meta.coverBytes = null;
-                tracks.add(trackJson(id, title, album, url, cov, meta));
+                JSONObject track = trackJson(id, title, album, url, cov, meta);
+                try {
+                    track.put("RelativePath", relativePaths.get(f.getUri()));
+                    // Older web releases read Path for folders; playback uses objUrl.
+                    track.put("Path", relativePaths.get(f.getUri()));
+                    track.put("LocalRootName", rootName);
+                } catch (org.json.JSONException error) {
+                    throw new java.io.IOException("Cannot preserve local folder path", error);
+                }
+                tracks.add(track);
 
                 idByUri.put(f.getUri(), id);
                 urlByUri.put(f.getUri(), url);
@@ -115,7 +126,7 @@ public final class LocalMusicPicker {
     private static void collect(DocumentFile[] entries, String album,
                                 Map<String, List<DocumentFile>> audioByAlbum,
                                 Map<String, List<DocumentFile>> covers,
-                                List<DocumentFile> playlists) {
+                                List<DocumentFile> playlists, Map<Uri, String> relativePaths) {
         if (entries == null) {
             return;
         }
@@ -124,13 +135,16 @@ public final class LocalMusicPicker {
                 continue;
             }
             if (f.isDirectory()) {
-                collect(dirToList(f), album, audioByAlbum, covers, playlists);
+                String child = f.getName() != null ? f.getName() : "";
+                collect(dirToList(f), album.isEmpty() ? child : album + "/" + child,
+                        audioByAlbum, covers, playlists, relativePaths);
             } else {
                 String name = f.getName() != null ? f.getName() : "";
                 String ext = extOf(name);
-                String dirKey = lastDirName(f) != null ? lastDirName(f) : album;
+                String dirKey = album;
                 if (isAudioExt(ext)) {
                     audioByAlbum.computeIfAbsent(dirKey, k -> new ArrayList<>()).add(f);
+                    relativePaths.put(f.getUri(), album.isEmpty() ? name : album + "/" + name);
                 } else if (isCoverExt(ext) && isCoverName(name)) {
                     covers.computeIfAbsent(dirKey, k -> new ArrayList<>()).add(f);
                 } else if (isPlaylistExt(ext)) {
@@ -138,20 +152,6 @@ public final class LocalMusicPicker {
                 }
             }
         }
-    }
-
-    private static String lastDirName(DocumentFile f) {
-        String path = f.getUri().getPath();
-        if (path == null) {
-            return null;
-        }
-        String[] seg = path.split("/");
-        if (seg.length >= 2) {
-            // [0]='document', [1]=tree_root, [2..] subcarpetas; devolvemos la penúltima
-            // para abajo, mejor el segmento anterior al nombre de archivo.
-            return seg.length >= 3 ? seg[seg.length - 2] : null;
-        }
-        return null;
     }
 
     private static boolean isAudioExt(String ext) {

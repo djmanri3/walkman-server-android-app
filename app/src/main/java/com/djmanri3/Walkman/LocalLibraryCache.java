@@ -3,6 +3,7 @@ package com.djmanri3.Walkman;
 import android.content.Context;
 import android.content.UriPermission;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 import android.util.AtomicFile;
 
 import org.json.JSONArray;
@@ -92,11 +93,35 @@ final class LocalLibraryCache {
 
         for (int i = 0; i < tracks.length(); i++) {
             JSONObject track = tracks.getJSONObject(i);
+            // Upgrade old indexes without rescanning audio or embedded artwork.
+            if (track.optString("Type").equals("Audio") && !track.has("RelativePath")) {
+                String oldUrl = track.optString("objUrl", track.optString("Path", ""));
+                String id = oldUrl.startsWith(previous) ? oldUrl.substring(previous.length()) : "";
+                String document = files.optString(id, "");
+                if (!document.isEmpty()) {
+                    try {
+                        String relative = relativeDocumentPath(Uri.parse(index.getString("tree")), Uri.parse(document));
+                        if (relative != null) track.put("RelativePath", relative);
+                    } catch (IllegalArgumentException ignored) {
+                        // Opaque provider IDs require selecting the folder again.
+                    }
+                }
+            }
             for (String key : new String[]{"Path", "objUrl", "coverUrl"}) {
                 String value = track.optString(key, "");
                 if (value.startsWith(previous)) track.put(key, server.baseUrl() + value.substring(previous.length()));
             }
+            // Keep older hosted web releases compatible with the native index.
+            // objUrl remains the current localhost playback endpoint.
+            if (track.has("RelativePath")) track.put("Path", track.getString("RelativePath"));
         }
         return tracks;
     }
+    static String relativeDocumentPath(Uri tree, Uri document) {
+        String root = DocumentsContract.getTreeDocumentId(tree);
+        String full = DocumentsContract.getDocumentId(document);
+        String prefix = (root.endsWith("/") || root.endsWith(":")) ? root : root + "/";
+        return full.startsWith(prefix) ? full.substring(prefix.length()) : null;
+    }
+
 }
