@@ -642,6 +642,24 @@ public class MainActivity extends Activity {
               var ins = [%d, %d, %d, %d, %d];
               var dpr = window.devicePixelRatio || 1;
               var d = document.documentElement;
+              // El tema cambia el padding de la cabecera sin cambiar los insets
+              // nativos. Recalcular tras aplicar su CSS, usando siempre los
+              // últimos insets recibidos (también al salir de pantalla completa).
+              window.__wmApplySafeArea = applySafeArea;
+              if (!window.__wmSafeAreaObserver) {
+                var pendingFrame = 0;
+                function scheduleSafeArea() {
+                  cancelAnimationFrame(pendingFrame);
+                  pendingFrame = requestAnimationFrame(function() {
+                    window.__wmApplySafeArea();
+                  });
+                }
+                window.__wmSafeAreaObserver = new MutationObserver(scheduleSafeArea);
+                window.__wmSafeAreaObserver.observe(d, {
+                  subtree: true, attributes: true, attributeFilter: ['data-theme']
+                });
+                window.addEventListener('resize', scheduleSafeArea);
+              }
               d.style.setProperty('--wm-inset-top', (ins[0] / dpr) + 'px');
               d.style.setProperty('--wm-inset-left', (ins[1] / dpr) + 'px');
               d.style.setProperty('--wm-inset-right', (ins[2] / dpr) + 'px');
@@ -668,6 +686,9 @@ public class MainActivity extends Activity {
 
               function applySafeArea() {
                 var rules = '';
+                var s = document.getElementById('wm-safe-area-style');
+                // Medir el diseño del tema sin nuestras correcciones anteriores.
+                if (s) s.textContent = '';
 
                 // Zona segura que el WebView ya expone a la web con env().
                 var probe = document.createElement('div');
@@ -716,7 +737,12 @@ public class MainActivity extends Activity {
                 }
                 if (css) rules += 'body{' + css + '}';
 
-                var s = document.getElementById('wm-safe-area-style');
+                // El Visualizador es una capa absoluta: no hereda el espacio
+                // reservado por la cabecera ni por el padding del body.
+                rules += '#visualizer-overlay{box-sizing:border-box;'
+                  + 'padding-top:max(env(safe-area-inset-top,0px),var(--wm-inset-top,0px)) !important;}';
+                rules += '#visualizer-overlay .visualizer-header{flex-shrink:0;}';
+
                 if (!s) {
                   s = document.createElement('style');
                   s.id = 'wm-safe-area-style';
