@@ -905,7 +905,8 @@ public class MainActivity extends Activity {
         mWebView = findViewById(R.id.webview);
         AndroidBridge.setThemeListener(theme -> runOnUiThread(() -> {
             if (isDestroyed()) return;
-            String selected = "music".equals(theme) || "classic".equals(theme) || "z1".equals(theme) ? theme : "modern";
+            String selected = "music".equals(theme) || "classic".equals(theme) || "z1".equals(theme)
+                    || "ericsony".equals(theme) || "walkmanhires".equals(theme) ? theme : "modern";
             if (selected.equals(mWebTheme)) return;
             mWebTheme = selected;
             getSharedPreferences("walkman_appearance", MODE_PRIVATE).edit().putString("theme", selected).apply();
@@ -1089,7 +1090,9 @@ public class MainActivity extends Activity {
             lp.height = height;
             scrim.setLayoutParams(lp);
         }
-        scrim.setVisibility(height > 0 && !"music".equals(mWebTheme) ? View.VISIBLE : View.GONE);
+        boolean transparent = "music".equals(mWebTheme) || "ericsony".equals(mWebTheme)
+                || "walkmanhires".equals(mWebTheme);
+        scrim.setVisibility(height > 0 && !transparent ? View.VISIBLE : View.GONE);
     }
 
     /**

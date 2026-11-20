@@ -7,7 +7,7 @@
         var player = document.getElementById('view-playing');
         var value = (document.body && document.body.dataset.theme) || (player && player.dataset.theme) || 'modern';
         var theme = String(value).toLowerCase();
-        if (!['modern', 'classic', 'z1', 'music'].includes(theme)) theme = 'modern';
+        if (!['modern', 'classic', 'z1', 'music', 'ericsony', 'walkmanhires'].includes(theme)) theme = 'modern';
         if (theme === lastTheme || !window.AndroidBridge || !AndroidBridge.setWebTheme) return;
         lastTheme = theme;
         AndroidBridge.setWebTheme(theme);

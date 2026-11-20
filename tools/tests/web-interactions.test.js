@@ -24,7 +24,7 @@ try {
  const fallback=${fallback};if(fallback)window.PointerEvent=undefined;
  eval(${JSON.stringify(script)});
  check(themes.join()==='modern','Sync the initial theme');
- for(const theme of ['classic','z1','music','modern']){document.body.dataset.theme=theme;await Promise.resolve();check(themes.at(-1)===theme,'Theme change reaches Android: '+theme);}
+ for(const theme of ['classic','z1','music','ericsony','walkmanhires','modern']){document.body.dataset.theme=theme;await Promise.resolve();check(themes.at(-1)===theme,'Theme change reaches Android: '+theme);}
  const count=themes.length;document.body.dataset.theme='modern';await Promise.resolve();check(themes.length===count,'Do not resend an unchanged theme');
  const song=document.querySelector('#song .title'),queued=document.querySelector('#queued .title'),card=document.querySelector('.music-library-track');
  function gesture(target,type,x=40,y=60,primary=true){
